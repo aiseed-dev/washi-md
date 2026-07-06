@@ -1,0 +1,13 @@
+/* theme: maru — 丸ゴシック (お知らせ・案内文・やわらかい文書)
+   @webfonts: Zen+Maru+Gothic:wght@400;500;700 */
+:root {
+  --serif: "Zen Maru Gothic", "Kosugi Maru", "M PLUS Rounded 1c",
+           "Hiragino Maru Gothic ProN", "BIZ UDPGothic", sans-serif;
+  --sans: "Zen Maru Gothic", "Kosugi Maru", "M PLUS Rounded 1c",
+          "Hiragino Maru Gothic ProN", "BIZ UDPGothic", sans-serif;
+  --accent: #e8845e;
+}
+body { line-height: 1.95; }
+p { text-indent: 0; margin-bottom: .55em; }
+h2 { border-left: none; padding-left: 0; }
+h2::before { content: "● "; color: var(--accent); font-size: .8em; }

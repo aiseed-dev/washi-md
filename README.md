@@ -44,6 +44,11 @@ html = render(markdown_text, title="報告書")
 
 - `--theme textbook` — 本文を**UDデジタル教科書体**に (学習教材向け。行間2.0)
 - `--theme gothic` — 本文ゴシック・字下げなし (ビジネス文書・報告書風)
+- `--theme maru` — **丸ゴシック** (Zen Maru Gothic。お知らせ・案内文のやわらかい文書)
+- `--theme bungei` — **オールド明朝** (Shippori Mincho。文芸・随筆の趣)
+- `--webfonts` — Google Fonts を読み込み、**フォント未導入の環境でも**テーマの
+  書体で表示 (BIZ UD も Google Fonts にあるため default テーマにも効く。
+  オフラインでは効かないので、自己完結にしたい場合は `--embed-fonts` を使う)
 - `--css my.css` — 自分のCSSを同梱CSSの後に追加 (自分のルールが優先。繰り返し可)
 - `--no-base-css` — 同梱CSSを使わず完全に自分のCSSで組む
 

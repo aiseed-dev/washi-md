@@ -1,0 +1,10 @@
+/* theme: bungei — オールド明朝 (文芸・随筆・縦のある文章の趣)
+   @webfonts: Shippori+Mincho:wght@400;700 */
+:root {
+  --serif: "Shippori Mincho", "Zen Old Mincho", "Yu Mincho",
+           "Hiragino Mincho ProN", serif;
+  --accent: #6b5236;
+}
+body { line-height: 2.05; letter-spacing: .015em; }
+h2 { border-left-color: var(--accent); font-family: var(--serif); font-weight: 700; }
+h3, h4 { font-family: var(--serif); font-weight: 700; }

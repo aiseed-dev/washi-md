@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.4.0 (2026-07-07)
+
+- テーマ追加: maru (丸ゴシック/Zen Maru Gothic、●見出し)・
+  bungei (オールド明朝/Shippori Mincho、行間2.05)
+- `--webfonts`: テーマCSSの @webfonts: 宣言から Google Fonts の<link>を注入。
+  フォント未導入の環境・PDF生成でもテーマ書体が使える (要ネットワーク)
+
 ## 0.3.0 (2026-07-07)
 
 - `--theme`: 用途別プリセット (default=明朝 / textbook=UDデジタル教科書体 /

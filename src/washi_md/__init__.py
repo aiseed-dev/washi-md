@@ -20,7 +20,7 @@ from pathlib import Path
 from markdown_it import MarkdownIt
 from mdit_py_cjk_friendly import cjk_friendly
 
-__version__ = "0.3.0"
+__version__ = "0.4.0"
 
 _CSS = (Path(__file__).parent / "style.css").read_text(encoding="utf-8")
 
@@ -49,13 +49,16 @@ def _embed_fonts_css(fonts_dir: Path) -> str:
             f"src: url(data:font/woff2;base64,{b64}) format('woff2'); }}")
     return "\n".join(rules)
 
+_WEBFONT_RE = re.compile(r"@webfonts:\s*([\w+@;:,]+)")
+_GF_BASE = ("BIZ+UDPMincho", "BIZ+UDPGothic:wght@400;700", "BIZ+UDGothic")
+
 _PAGE = """<!DOCTYPE html>
 <html lang="ja">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>{title}</title>
-<style>
+{webfonts}<style>
 {css}
 </style>
 </head>
@@ -87,7 +90,8 @@ def themes() -> list[str]:
 
 def render(text: str, title: str | None = None,
            embed_fonts: Path | None = None, theme: str = "default",
-           extra_css: list[Path] | None = None, base_css: bool = True) -> str:
+           extra_css: list[Path] | None = None, base_css: bool = True,
+           webfonts: bool = False) -> str:
     """Markdown 文字列 → 自己完結の組版済み HTML。"""
     meta, body_md = _frontmatter(text)
     md = MarkdownIt("commonmark", {"html": True}).enable("table").use(cjk_friendly)
@@ -113,8 +117,21 @@ def render(text: str, title: str | None = None,
     css = "\n".join(parts)
     if embed_fonts:
         css = _embed_fonts_css(Path(embed_fonts)) + "\n" + css
+
+    webfont_links = ""
+    if webfonts:
+        fams = _WEBFONT_RE.findall(css) or []
+        if base_css and theme == "default":
+            fams = list(_GF_BASE) + fams
+        elif base_css:
+            fams = fams + list(_GF_BASE)  # テーマ書体を先に、UD代替も読む
+        if fams:
+            q = "&".join(f"family={f}" for f in dict.fromkeys(fams))
+            webfont_links = (
+                '<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>\n'
+                f'<link rel="stylesheet" href="https://fonts.googleapis.com/css2?{q}&display=swap">\n')
     return _PAGE.format(title=_html.escape(title), css=css,
-                        heading=heading, body=body)
+                        webfonts=webfont_links, heading=heading, body=body)
 
 
 def _find_chrome() -> str | None:
@@ -141,7 +158,10 @@ def main() -> None:
     ap.add_argument("--title")
     ap.add_argument("--pdf", action="store_true", help="Chrome ヘッドレスで PDF も出力")
     ap.add_argument("--theme", default="default",
-                    help="文書テーマ (default / textbook / gothic)")
+                    help="文書テーマ: " + " / ".join(themes()))
+    ap.add_argument("--webfonts", action="store_true",
+                    help="Google Fonts を読み込む (フォント未導入の環境向け。"
+                         "オフラインでは効かない)")
     ap.add_argument("--css", type=Path, action="append", default=[], metavar="FILE",
                     help="追加CSS (同梱CSSの後に適用。繰り返し指定可)")
     ap.add_argument("--no-base-css", action="store_true",
@@ -155,7 +175,8 @@ def main() -> None:
     out = args.output or args.input.with_suffix(".html")
     out.write_text(render(args.input.read_text(encoding="utf-8"), args.title,
                           embed_fonts=args.embed_fonts, theme=args.theme,
-                          extra_css=args.css, base_css=not args.no_base_css),
+                          extra_css=args.css, base_css=not args.no_base_css,
+                          webfonts=args.webfonts),
                    encoding="utf-8")
     print(out)
     if args.pdf:
