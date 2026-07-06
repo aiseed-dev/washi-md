@@ -1,7 +1,7 @@
 /* washi-md 日本語組版CSS — 画面と印刷 (@page) の両対応 */
 :root {
-  --serif: "BIZ UDPMincho", "Hiragino Mincho ProN", "Noto Serif CJK JP", "Yu Mincho", serif;
-  --sans: "BIZ UDPGothic", "Hiragino Kaku Gothic ProN", "Noto Sans CJK JP", "Yu Gothic", sans-serif;
+  --serif: "UD黎ミン Pr6N", "A-OTF UD黎ミン Pr6N", "UD黎ミン", "BIZ UDPMincho", "Hiragino Mincho ProN", "Noto Serif CJK JP", "Yu Mincho", serif;
+  --sans: "UD新ゴ Pr6N", "A-OTF UD新ゴ Pr6N", "UD新ゴ", "BIZ UDPGothic", "Hiragino Kaku Gothic ProN", "Noto Sans CJK JP", "Yu Gothic", sans-serif;
   --mono: "BIZ UDGothic", "Noto Sans Mono CJK JP", monospace;
   --ink: #222; --rule: #999; --accent: #2a5d8f;
 }

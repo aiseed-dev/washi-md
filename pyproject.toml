@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "washi-md"
-version = "0.1.0"
+version = "0.2.0"
 description = "Markdown から美しい日本語文書 (HTML/PDF) を作る — 日本語組版CSS・CJKフレンドリー・Chrome印刷"
 readme = "README.md"
 requires-python = ">=3.9"

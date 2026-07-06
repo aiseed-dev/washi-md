@@ -20,9 +20,34 @@ from pathlib import Path
 from markdown_it import MarkdownIt
 from mdit_py_cjk_friendly import cjk_friendly
 
-__version__ = "0.1.0"
+__version__ = "0.2.0"
 
 _CSS = (Path(__file__).parent / "style.css").read_text(encoding="utf-8")
+
+# --embed-fonts で探す BIZ UD (SIL OFL。再配布可) の woff2 と @font-face 定義
+_FONT_FILES = [
+    ("BIZUDPMincho-Regular.woff2", "BIZ UDPMincho", 400),
+    ("BIZUDPGothic-Regular.woff2", "BIZ UDPGothic", 400),
+    ("BIZUDPGothic-Bold.woff2", "BIZ UDPGothic", 700),
+    ("BIZUDGothic-Regular.woff2", "BIZ UDGothic", 400),
+]
+
+
+def _embed_fonts_css(fonts_dir: Path) -> str:
+    """BIZ UD の woff2 を base64 の @font-face にする (見つかった分だけ)。"""
+    import base64
+    rules = []
+    for fname, family, weight in _FONT_FILES:
+        f = fonts_dir / fname
+        if not f.exists():
+            print(f"警告: {f} が無いため埋め込みをスキップ", file=sys.stderr)
+            continue
+        b64 = base64.b64encode(f.read_bytes()).decode()
+        rules.append(
+            f"@font-face {{ font-family: '{family}'; font-weight: {weight}; "
+            f"font-display: swap; "
+            f"src: url(data:font/woff2;base64,{b64}) format('woff2'); }}")
+    return "\n".join(rules)
 
 _PAGE = """<!DOCTYPE html>
 <html lang="ja">
@@ -53,7 +78,8 @@ def _frontmatter(text: str) -> tuple[dict, str]:
     return meta, text[m.end():]
 
 
-def render(text: str, title: str | None = None) -> str:
+def render(text: str, title: str | None = None,
+           embed_fonts: Path | None = None) -> str:
     """Markdown 文字列 → 自己完結の組版済み HTML。"""
     meta, body_md = _frontmatter(text)
     md = MarkdownIt("commonmark", {"html": True}).enable("table").use(cjk_friendly)
@@ -68,7 +94,10 @@ def render(text: str, title: str | None = None) -> str:
             heading += f'<p class="doc-meta">{_html.escape(sub)}</p>\n'
     else:
         title = title or "文書"
-    return _PAGE.format(title=_html.escape(title), css=_CSS,
+    css = _CSS
+    if embed_fonts:
+        css = _embed_fonts_css(Path(embed_fonts)) + "\n" + css
+    return _PAGE.format(title=_html.escape(title), css=css,
                         heading=heading, body=body)
 
 
@@ -95,11 +124,15 @@ def main() -> None:
     ap.add_argument("-o", "--output", type=Path)
     ap.add_argument("--title")
     ap.add_argument("--pdf", action="store_true", help="Chrome ヘッドレスで PDF も出力")
+    ap.add_argument("--embed-fonts", type=Path, metavar="DIR",
+                    help="BIZ UD フォント (woff2) を HTML に埋め込む (SIL OFL)。"
+                         "DIR に BIZUDPMincho-Regular.woff2 等を置く")
     ap.add_argument("--version", action="version", version=__version__)
     args = ap.parse_args()
 
     out = args.output or args.input.with_suffix(".html")
-    out.write_text(render(args.input.read_text(encoding="utf-8"), args.title),
+    out.write_text(render(args.input.read_text(encoding="utf-8"), args.title,
+                          embed_fonts=args.embed_fonts),
                    encoding="utf-8")
     print(out)
     if args.pdf:
