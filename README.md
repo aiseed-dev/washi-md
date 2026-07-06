@@ -49,6 +49,12 @@ html = render(markdown_text, title="報告書")
 - `--webfonts` — Google Fonts を読み込み、**フォント未導入の環境でも**テーマの
   書体で表示 (BIZ UD も Google Fonts にあるため default テーマにも効く。
   オフラインでは効かないので、自己完結にしたい場合は `--embed-fonts` を使う)
+- `--font-serif "A1明朝"` / `--font-sans "新ゴ M"` — **インストール済みフォントを
+  名前で直接指定**。Morisawa Fonts (Select 8 等) で入れた書体がCSSなしで使える。
+  PDF生成もローカルレンダリングなのでそのまま効く
+- **ユーザーテーマ**: `~/.config/washi-md/themes/○○.css` に置くと
+  `--theme ○○` で使える (同名なら同梱テーマより優先)。お気に入りの
+  書体構成を場面別に保存しておける
 - `--css my.css` — 自分のCSSを同梱CSSの後に追加 (自分のルールが優先。繰り返し可)
 - `--no-base-css` — 同梱CSSを使わず完全に自分のCSSで組む
 

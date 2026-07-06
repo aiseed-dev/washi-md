@@ -20,7 +20,7 @@ from pathlib import Path
 from markdown_it import MarkdownIt
 from mdit_py_cjk_friendly import cjk_friendly
 
-__version__ = "0.4.0"
+__version__ = "0.5.0"
 
 _CSS = (Path(__file__).parent / "style.css").read_text(encoding="utf-8")
 
@@ -82,16 +82,31 @@ def _frontmatter(text: str) -> tuple[dict, str]:
 
 
 THEMES_DIR = Path(__file__).parent / "themes"
+USER_THEMES_DIR = Path.home() / ".config" / "washi-md" / "themes"
+
+
+def _theme_file(name: str) -> Path | None:
+    """ユーザーテーマ (~/.config/washi-md/themes/) が同梱テーマより優先。"""
+    for d in (USER_THEMES_DIR, THEMES_DIR):
+        f = d / f"{name}.css"
+        if f.exists():
+            return f
+    return None
 
 
 def themes() -> list[str]:
-    return sorted(["default"] + [f.stem for f in THEMES_DIR.glob("*.css")])
+    names = {"default"}
+    for d in (THEMES_DIR, USER_THEMES_DIR):
+        if d.exists():
+            names.update(f.stem for f in d.glob("*.css"))
+    return sorted(names)
 
 
 def render(text: str, title: str | None = None,
            embed_fonts: Path | None = None, theme: str = "default",
            extra_css: list[Path] | None = None, base_css: bool = True,
-           webfonts: bool = False) -> str:
+           webfonts: bool = False, font_serif: str | None = None,
+           font_sans: str | None = None) -> str:
     """Markdown 文字列 → 自己完結の組版済み HTML。"""
     meta, body_md = _frontmatter(text)
     md = MarkdownIt("commonmark", {"html": True}).enable("table").use(cjk_friendly)
@@ -108,10 +123,17 @@ def render(text: str, title: str | None = None,
         title = title or "文書"
     parts = [_CSS] if base_css else []
     if theme != "default":
-        theme_file = THEMES_DIR / f"{theme}.css"
-        if not theme_file.exists():
+        theme_file = _theme_file(theme)
+        if theme_file is None:
             raise ValueError(f"テーマがありません: {theme} (利用可能: {', '.join(themes())})")
         parts.append(theme_file.read_text(encoding="utf-8"))
+    if font_serif or font_sans:
+        over = ":root {"
+        if font_serif:
+            over += f" --serif: '{font_serif}', 'BIZ UDPMincho', serif;"
+        if font_sans:
+            over += f" --sans: '{font_sans}', 'BIZ UDPGothic', sans-serif;"
+        parts.append(over + " }")
     for f in extra_css or []:
         parts.append(Path(f).read_text(encoding="utf-8"))
     css = "\n".join(parts)
@@ -159,6 +181,11 @@ def main() -> None:
     ap.add_argument("--pdf", action="store_true", help="Chrome ヘッドレスで PDF も出力")
     ap.add_argument("--theme", default="default",
                     help="文書テーマ: " + " / ".join(themes()))
+    ap.add_argument("--font-serif", metavar="NAME",
+                    help="本文書体をインストール済みフォント名で指定 "
+                         "(例: 'A1明朝'、'リュウミン R-KL'。Morisawa Fonts等)")
+    ap.add_argument("--font-sans", metavar="NAME",
+                    help="見出し書体をフォント名で指定 (例: '新ゴ M'、'フォーク M')")
     ap.add_argument("--webfonts", action="store_true",
                     help="Google Fonts を読み込む (フォント未導入の環境向け。"
                          "オフラインでは効かない)")
@@ -176,7 +203,8 @@ def main() -> None:
     out.write_text(render(args.input.read_text(encoding="utf-8"), args.title,
                           embed_fonts=args.embed_fonts, theme=args.theme,
                           extra_css=args.css, base_css=not args.no_base_css,
-                          webfonts=args.webfonts),
+                          webfonts=args.webfonts, font_serif=args.font_serif,
+                          font_sans=args.font_sans),
                    encoding="utf-8")
     print(out)
     if args.pdf:

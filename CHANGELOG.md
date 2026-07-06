@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.5.0 (2026-07-07)
+
+- `--font-serif NAME` / `--font-sans NAME`: インストール済みフォントを名前で
+  直接指定 (Morisawa Fonts の Select 8 等の商用書体がCSSなしで使える)
+- ユーザーテーマ: ~/.config/washi-md/themes/*.css を --theme で利用可能に
+  (同梱テーマより優先。テーマ一覧・エラー表示にも反映)
+
 ## 0.4.0 (2026-07-07)
 
 - テーマ追加: maru (丸ゴシック/Zen Maru Gothic、●見出し)・
