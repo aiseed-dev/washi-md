@@ -1,0 +1,23 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "washi-md"
+version = "0.1.0"
+description = "Markdown から美しい日本語文書 (HTML/PDF) を作る — 日本語組版CSS・CJKフレンドリー・Chrome印刷"
+readme = "README.md"
+requires-python = ">=3.9"
+license = { text = "MIT" }
+authors = [{ name = "aiseed-dev" }]
+keywords = ["markdown", "japanese", "typography", "pdf", "document", "cjk"]
+dependencies = ["markdown-it-py>=2.0,<4", "mdit-py-cjk-friendly>=0.1"]
+
+[project.scripts]
+washi = "washi_md:main"
+
+[project.urls]
+Homepage = "https://github.com/aiseed-dev/washi-md"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/washi_md"]

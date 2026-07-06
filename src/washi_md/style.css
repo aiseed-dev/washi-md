@@ -1,0 +1,57 @@
+/* washi-md 日本語組版CSS — 画面と印刷 (@page) の両対応 */
+:root {
+  --serif: "BIZ UDPMincho", "Hiragino Mincho ProN", "Noto Serif CJK JP", "Yu Mincho", serif;
+  --sans: "BIZ UDPGothic", "Hiragino Kaku Gothic ProN", "Noto Sans CJK JP", "Yu Gothic", sans-serif;
+  --mono: "BIZ UDGothic", "Noto Sans Mono CJK JP", monospace;
+  --ink: #222; --rule: #999; --accent: #2a5d8f;
+}
+html { font-size: 15px; }
+body {
+  font-family: var(--serif); color: var(--ink); background: #fff;
+  line-height: 1.9; max-width: 40em; margin: 2rem auto; padding: 0 1.2rem;
+  text-align: justify; line-break: strict; overflow-wrap: anywhere;
+  font-feature-settings: "palt" 0;  /* 本文はベタ組 */
+  text-spacing-trim: trim-start;    /* 約物の行頭詰め (対応ブラウザのみ) */
+  hanging-punctuation: allow-end;   /* 句読点のぶら下げ */
+}
+h1, h2, h3, h4 { font-family: var(--sans); font-weight: 700; line-height: 1.4;
+  break-after: avoid; font-feature-settings: "palt" 1; }
+h1 { font-size: 1.7rem; margin: 0 0 .4em; letter-spacing: .02em; }
+h1 + .doc-meta { color: #666; font-family: var(--sans); font-size: .82rem;
+  margin: 0 0 2.2em; padding-bottom: .8em; border-bottom: 1px solid var(--rule); }
+h2 { font-size: 1.25rem; margin: 2.2em 0 .7em; padding-left: .55em;
+  border-left: 4px solid var(--accent); }
+h3 { font-size: 1.05rem; margin: 1.8em 0 .5em; }
+h4 { font-size: 1rem; margin: 1.5em 0 .4em; }
+p { margin: 0 0 .2em; text-indent: 1em; }
+p.no-indent, h1+p, h2+p, h3+p, h4+p, li>p, blockquote p, td p { text-indent: 0; }
+ul, ol { padding-left: 1.6em; margin: .5em 0 .9em; }
+li { margin: .15em 0; }
+blockquote { margin: 1em 0; padding: .1em 1em; border-left: 3px solid #ccc;
+  color: #444; font-size: .95em; }
+table { border-collapse: collapse; margin: 1em auto; font-family: var(--sans);
+  font-size: .88rem; font-variant-numeric: tabular-nums; }
+th, td { border: 1px solid #bbb; padding: .3em .7em; }
+th { background: #f2f5f8; font-weight: 700; }
+td { text-align: left; }
+code { font-family: var(--mono); font-size: .88em; background: #f4f4f4;
+  padding: .1em .35em; border-radius: 3px; }
+pre { background: #f7f8f9; border: 1px solid #e0e0e0; border-radius: 5px;
+  padding: .8em 1em; overflow-x: auto; line-height: 1.55; }
+pre code { background: none; padding: 0; font-size: .84rem; }
+img { max-width: 100%; height: auto; }
+hr { border: none; border-top: 1px solid var(--rule); margin: 2.5em auto; width: 50%; }
+a { color: var(--accent); }
+strong { font-family: var(--sans); font-weight: 700; }
+
+@media print {
+  html { font-size: 10.5pt; }
+  body { max-width: none; margin: 0; padding: 0; }
+  a { color: inherit; text-decoration: none; }
+  pre, blockquote, table, figure { break-inside: avoid; }
+  h2, h3 { break-after: avoid; }
+}
+@page {
+  size: A4; margin: 22mm 20mm 20mm;
+  @bottom-center { content: counter(page) " / " counter(pages); font-size: 9pt; color: #666; }
+}
