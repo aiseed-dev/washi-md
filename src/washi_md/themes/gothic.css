@@ -1,0 +1,4 @@
+/* theme: gothic — ゴシック本文 (ビジネス文書・スライド原稿風) */
+:root { --serif: var(--sans); }
+p { text-indent: 0; margin-bottom: .6em; }
+body { line-height: 1.8; }

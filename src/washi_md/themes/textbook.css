@@ -1,0 +1,7 @@
+/* theme: textbook — 教科書体の本文 (学習教材・子ども向け文書) */
+:root {
+  --serif: "UD デジタル 教科書体 N-R", "UD デジタル 教科書体 NP-R",
+           "UDデジタル教科書体", "Klee One", "BIZ UDPMincho",
+           "Hiragino Mincho ProN", serif;
+}
+body { line-height: 2.0; }
