@@ -43,6 +43,16 @@ from washi_md import render
 html = render(markdown_text, title="報告書")
 ```
 
+## 縦書き
+
+```bash
+washi 小説.md --vertical --theme bungei --pdf
+```
+
+`--vertical` で本文が縦書き (右→左) になる。1〜2桁の数字は自動で
+縦中横、表とコードブロックは横書きのまま埋め込まれる。
+bungei テーマと組み合わせると小説・随筆向けの組版になる。
+
 ## テーマとカスタムCSS
 
 - `--theme textbook` — 本文を**UDデジタル教科書体**に (学習教材向け。行間2.0)

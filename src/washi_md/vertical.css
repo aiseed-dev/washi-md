@@ -1,0 +1,46 @@
+/* washi-md 縦書き (--vertical) — vertical-rl、画面・印刷両対応。
+   方向依存の指定は CSS 論理プロパティで上書きする
+   (block = 行送り方向 = 右→左、inline = 行の中 = 上→下)。 */
+html { writing-mode: vertical-rl; }
+body {
+  max-width: none;
+  height: calc(100vh - 4rem);   /* 画面: 行長はビューポート高 */
+  max-height: 44em;             /* 長すぎる行は制限 (書籍の行長相当) */
+  margin: 2rem auto;
+  padding: 0;
+}
+
+/* 段落: 書籍式 (段落間は空けず、字下げで区切る) */
+p { margin: 0; }
+
+h1 { margin: 0; margin-block-end: .4em; }
+h1 + .doc-meta { margin: 0; margin-block-end: 2.2em;
+  padding-bottom: 0; padding-block-end: .8em;
+  border-bottom: none; border-block-end: 1px solid var(--rule); }
+h2 { margin: 0; margin-block: 2.2em .7em;
+  border-left: none; padding-left: 0;
+  border-inline-start: 4px solid var(--accent); padding-inline-start: .55em; }
+h3 { margin: 0; margin-block: 1.8em .5em; }
+h4 { margin: 0; margin-block: 1.5em .4em; }
+
+ul, ol { margin: 0; margin-block: .5em .9em;
+  padding-left: 0; padding-inline-start: 1.6em; }
+blockquote { margin: 0; margin-block: 1em; padding: 0;
+  padding-block: .1em; padding-inline: .2em;
+  border-left: none; border-block-start: 3px solid #ccc; }
+
+/* 表とコードは横書きのまま埋め込む (縦書きに混ぜない) */
+pre, table { writing-mode: horizontal-tb; max-width: 100%; }
+table { margin-block: 1em; }
+pre { margin: 0; margin-block: 1em; }
+
+img { max-height: 100%; }
+hr { width: auto; inline-size: 50%; margin: auto; margin-block: 2.5em;
+  border: none; border-block-start: 1px solid var(--rule); }
+
+/* 縦中横 (1〜2桁の数字・感嘆疑問符ペアを正立で横に組む) */
+.tcy { text-combine-upright: all; }
+
+@media print {
+  body { height: auto; max-height: none; margin: 0; }
+}
