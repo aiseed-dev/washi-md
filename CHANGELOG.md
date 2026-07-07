@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.7.0 (2026-07-07)
+
+- `--genko`: 原稿用紙 (1字1マスのグリッド、既定20字/行)。単体で横書き、
+  `--vertical` 併用で縦書き原稿用紙。半角英数は text-transform:
+  full-width で全角化してマスに収める。マス目は CSS グリッド背景
+  (行の枠 + マス区切りの2層 repeating-linear-gradient) で、
+  グリフの半レディングに合わせて位置合わせ済み。字数は
+  `--css` で `--genko-cols` を上書きして変更可
+
 ## 0.6.0 (2026-07-07)
 
 - `--vertical`: 縦書き (writing-mode: vertical-rl)。右→左の行送り、

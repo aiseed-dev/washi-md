@@ -1,0 +1,80 @@
+/* washi-md 原稿用紙 (--genko) — マス目グリッド。縦書き (--vertical 併用) と
+   横書きの両対応。1マス = 1em のベタ組にグリッド背景を重ねる。
+   行送り = 2em (マス 1em + 行間 1em)。既定 20字/行 (--genko-cols で変更可)。 */
+body.genko {
+  --genko-cols: 20;                 /* 1行の字数 */
+  --genko-line: #c8b294;            /* マス目の色 (原稿用紙の薄茶) */
+  --g: .5em;                        /* 行間の半分 = (行送り2em − マス1em)/2 */
+  line-height: 2;
+  font-feature-settings: "palt" 0;
+  text-align: start;
+  text-spacing-trim: space-all;     /* 約物も全角のまま (マス目維持) */
+  hanging-punctuation: none;
+  letter-spacing: 0;
+  text-transform: full-width;       /* 半角英数を全角にしてマスに収める */
+  background-origin: content-box;
+  background-clip: content-box;
+  box-decoration-break: clone;      /* ページごとにグリッドを描き直す */
+  padding: 0;
+}
+
+/* 見出し・装飾は平文と同じ大きさに落とす (マス目が崩れないように) */
+body.genko h1, body.genko h2, body.genko h3, body.genko h4 {
+  font-size: 1em; line-height: inherit; margin: 0; padding: 0; border: none;
+  font-family: inherit;
+}
+body.genko p { margin: 0; text-indent: 1em; }
+body.genko .doc-meta { margin: 0; padding: 0; border: none; font-size: 1em;
+  font-family: inherit; color: inherit; }
+body.genko blockquote { margin: 0; padding: 0; border: none; font-size: 1em;
+  color: inherit; }
+body.genko hr { display: none; }
+body.genko strong { font-family: inherit; }
+
+/* --- 横書き: 行は上→下、マスは左→右 --- */
+body.genko:not(.vertical) {
+  width: calc(var(--genko-cols) * 1em);
+  max-width: none;
+  background-image:
+    /* 行の枠 (上下の罫) と行間の白帯。グリフは行ボックス中央 (半leading .5em) */
+    repeating-linear-gradient(to bottom,
+      #fff 0, #fff calc(var(--g) - 1px),
+      var(--genko-line) calc(var(--g) - 1px), var(--genko-line) var(--g),
+      transparent var(--g), transparent calc(var(--g) + 1em),
+      var(--genko-line) calc(var(--g) + 1em),
+      var(--genko-line) calc(var(--g) + 1em + 1px),
+      #fff calc(var(--g) + 1em + 1px), #fff 2em),
+    /* マスの区切り (縦線、1em ごと) */
+    repeating-linear-gradient(to right,
+      var(--genko-line) 0, var(--genko-line) 1px,
+      transparent 1px, transparent calc(1em - 1px),
+      var(--genko-line) calc(1em - 1px), var(--genko-line) 1em);
+}
+
+/* --- 縦書き: 行は右→左、マスは上→下 --- */
+body.vertical.genko {
+  height: calc(var(--genko-cols) * 1em);
+  max-height: none;
+  background-image:
+    repeating-linear-gradient(to left,
+      #fff 0, #fff calc(var(--g) - 1px),
+      var(--genko-line) calc(var(--g) - 1px), var(--genko-line) var(--g),
+      transparent var(--g), transparent calc(var(--g) + 1em),
+      var(--genko-line) calc(var(--g) + 1em),
+      var(--genko-line) calc(var(--g) + 1em + 1px),
+      #fff calc(var(--g) + 1em + 1px), #fff 2em),
+    repeating-linear-gradient(to bottom,
+      var(--genko-line) 0, var(--genko-line) 1px,
+      transparent 1px, transparent calc(1em - 1px),
+      var(--genko-line) calc(1em - 1px), var(--genko-line) 1em);
+}
+
+/* 表・コードはマス目の外の世界なので原稿用紙モードでは非推奨だが、
+   混ざっても読めるよう背景だけ白にする */
+body.genko pre, body.genko table { background: #fff; }
+
+@media print {
+  /* A4・12pt・20字×行送り2em → おおむね 20行/頁 = 400字詰め相当 */
+  html { font-size: 12pt; }
+  body.genko { margin: 0; }
+}

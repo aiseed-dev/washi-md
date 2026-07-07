@@ -20,10 +20,11 @@ from pathlib import Path
 from markdown_it import MarkdownIt
 from mdit_py_cjk_friendly import cjk_friendly
 
-__version__ = "0.6.0"
+__version__ = "0.7.0"
 
 _CSS = (Path(__file__).parent / "style.css").read_text(encoding="utf-8")
 _VERTICAL_CSS = (Path(__file__).parent / "vertical.css").read_text(encoding="utf-8")
+_GENKO_CSS = (Path(__file__).parent / "genko.css").read_text(encoding="utf-8")
 
 # 縦中横: タグ・コード部を除いた本文テキスト中の 1〜2桁数字と !? ペア
 _TCY_SPLIT_RE = re.compile(r"(<pre\b.*?</pre>|<code\b.*?</code>|<[^>]+>)", re.DOTALL)
@@ -74,7 +75,7 @@ _PAGE = """<!DOCTYPE html>
 {css}
 </style>
 </head>
-<body>
+<body{bodyclass}>
 {heading}{body}
 </body>
 </html>
@@ -118,13 +119,14 @@ def render(text: str, title: str | None = None,
            embed_fonts: Path | None = None, theme: str = "default",
            extra_css: list[Path] | None = None, base_css: bool = True,
            webfonts: bool = False, font_serif: str | None = None,
-           font_sans: str | None = None, vertical: bool = False) -> str:
+           font_sans: str | None = None, vertical: bool = False,
+           genko: bool = False) -> str:
     """Markdown 文字列 → 自己完結の組版済み HTML。"""
     meta, body_md = _frontmatter(text)
     md = MarkdownIt("commonmark", {"html": True}).enable("table").use(cjk_friendly)
     body = md.render(body_md)
-    if vertical:
-        body = _tcy(body)
+    if vertical and not genko:
+        body = _tcy(body)  # 原稿用紙では縦中横にせず1字1マス (全角化) で組む
 
     title = title or meta.get("title")
     heading = ""
@@ -143,6 +145,8 @@ def render(text: str, title: str | None = None,
         parts.append(theme_file.read_text(encoding="utf-8"))
     if vertical:
         parts.append(_VERTICAL_CSS)
+    if genko:
+        parts.append(_GENKO_CSS)
     if font_serif or font_sans:
         over = ":root {"
         if font_serif:
@@ -168,7 +172,9 @@ def render(text: str, title: str | None = None,
             webfont_links = (
                 '<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>\n'
                 f'<link rel="stylesheet" href="https://fonts.googleapis.com/css2?{q}&display=swap">\n')
-    return _PAGE.format(title=_html.escape(title), css=css,
+    classes = [c for c, on in (("vertical", vertical), ("genko", genko)) if on]
+    bodyclass = f' class="{" ".join(classes)}"' if classes else ""
+    return _PAGE.format(title=_html.escape(title), css=css, bodyclass=bodyclass,
                         webfonts=webfont_links, heading=heading, body=body)
 
 
@@ -200,6 +206,9 @@ def main() -> None:
     ap.add_argument("--vertical", action="store_true",
                     help="縦書き (右→左の行送り。1〜2桁の数字は縦中横。"
                          "表とコードブロックは横書きのまま埋め込む)")
+    ap.add_argument("--genko", action="store_true",
+                    help="原稿用紙 (1字1マスのグリッド、20字/行)。"
+                         "--vertical と併用で縦書き原稿用紙")
     ap.add_argument("--font-serif", metavar="NAME",
                     help="本文書体をインストール済みフォント名で指定 "
                          "(例: 'A1明朝'、'リュウミン R-KL'。Morisawa Fonts等)")
@@ -223,7 +232,8 @@ def main() -> None:
                           embed_fonts=args.embed_fonts, theme=args.theme,
                           extra_css=args.css, base_css=not args.no_base_css,
                           webfonts=args.webfonts, font_serif=args.font_serif,
-                          font_sans=args.font_sans, vertical=args.vertical),
+                          font_sans=args.font_sans, vertical=args.vertical,
+                          genko=args.genko),
                    encoding="utf-8")
     print(out)
     if args.pdf:

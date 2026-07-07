@@ -53,6 +53,16 @@ washi 小説.md --vertical --theme bungei --pdf
 縦中横、表とコードブロックは横書きのまま埋め込まれる。
 bungei テーマと組み合わせると小説・随筆向けの組版になる。
 
+原稿用紙にもできる (縦横どちらでも):
+
+```bash
+washi 作文.md --genko --pdf              # 横書き原稿用紙
+washi 作文.md --genko --vertical --pdf   # 縦書き原稿用紙 (20字/行)
+```
+
+1字1マスのグリッドに全角ベタ組で流し込む。半角英数は自動で全角化。
+字数を変えるには `--css` で `body.genko { --genko-cols: 25; }` を渡す。
+
 ## テーマとカスタムCSS
 
 - `--theme textbook` — 本文を**UDデジタル教科書体**に (学習教材向け。行間2.0)
