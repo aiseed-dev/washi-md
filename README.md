@@ -3,7 +3,10 @@
 Markdown から**美しい日本語文書** (HTML / PDF) を作るコマンド。
 
 ```bash
-pip install washi-md
+# PyPI 公開までは GitHub から (依存パッケージを先に):
+pip install "mdit-py-cjk-friendly @ git+https://github.com/aiseed-dev/mdit-py-cjk-friendly.git"
+pip install "washi-md @ git+https://github.com/aiseed-dev/washi-md.git"
+# PyPI 公開後: pip install washi-md
 
 washi report.md          # → report.html (組版済み・自己完結・1ファイル)
 washi report.md --pdf    # → report.pdf も出力 (Chrome/Chromium ヘッドレス印刷)
