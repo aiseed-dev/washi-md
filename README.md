@@ -1,6 +1,6 @@
 # washi-md
 
-日本語 | [English](README.en.md)
+日本語 | [English](README.en.md) | [繁體中文](README.zh-TW.md) | [한국어](README.ko.md)
 
 Markdown から**美しい日本語文書** (HTML / PDF) を作るコマンド。
 横書きのビジネス文書から、縦書きの小説、原稿用紙まで、

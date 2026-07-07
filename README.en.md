@@ -1,6 +1,6 @@
 # washi-md
 
-[日本語](README.md) | English
+[日本語](README.md) | English | [繁體中文](README.zh-TW.md) | [한국어](README.ko.md)
 
 Turn Markdown into **beautifully typeset Japanese documents** (HTML / PDF).
 One command covers horizontal business documents, vertical-writing fiction,
