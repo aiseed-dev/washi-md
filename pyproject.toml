@@ -13,6 +13,9 @@ authors = [{ name = "aiseed-dev" }]
 keywords = ["markdown", "japanese", "typography", "pdf", "document", "cjk"]
 dependencies = ["markdown-it-py>=2.0,<4", "mdit-py-cjk-friendly>=0.1"]
 
+[project.optional-dependencies]
+dev = ["pytest>=8"]
+
 [project.scripts]
 washi = "washi_md:main"
 
