@@ -175,3 +175,14 @@ def test_pdf(tmp_path, monkeypatch):
     pdf = tmp_path / "doc.pdf"
     assert pdf.exists()
     assert pdf.read_bytes()[:5] == b"%PDF-"
+
+
+def test_ruby_group():
+    html = render("{漢字|かんじ}を書く。")
+    assert "<ruby>漢字<rp>(</rp><rt>かんじ</rt><rp>)</rp></ruby>" in html
+
+
+def test_ruby_mono_with_vertical():
+    html = render("{東京|とう|きょう}", vertical=True)
+    assert "<ruby>東<rp>(</rp><rt>とう</rt><rp>)</rp>" in html
+    assert "writing-mode: vertical-rl" in html

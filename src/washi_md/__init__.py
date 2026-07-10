@@ -18,9 +18,9 @@ import sys
 from pathlib import Path
 
 from markdown_it import MarkdownIt
-from mdit_py_cjk_friendly import cjk_friendly
+from mdit_py_cjk_friendly import cjk_friendly, ruby
 
-__version__ = "0.7.0"
+__version__ = "0.8.0"
 
 _CSS = (Path(__file__).parent / "style.css").read_text(encoding="utf-8")
 _VERTICAL_CSS = (Path(__file__).parent / "vertical.css").read_text(encoding="utf-8")
@@ -123,7 +123,8 @@ def render(text: str, title: str | None = None,
            genko: bool = False) -> str:
     """Markdown 文字列 → 自己完結の組版済み HTML。"""
     meta, body_md = _frontmatter(text)
-    md = MarkdownIt("commonmark", {"html": True}).enable("table").use(cjk_friendly)
+    md = (MarkdownIt("commonmark", {"html": True})
+          .enable("table").use(cjk_friendly).use(ruby))
     body = md.render(body_md)
     if vertical and not genko:
         body = _tcy(body)  # 原稿用紙では縦中横にせず1字1マス (全角化) で組む
