@@ -36,6 +36,11 @@ washi report.md --pdf    # → report.pdf as well (headless Chrome/Chromium)
 - **Print/PDF ready**: `@page` with A4, margins, page numbers; avoids page
   breaks inside tables/code/after headings. `--pdf` uses headless Chrome
   (no extra dependencies)
+- **Furigana (ruby)**: `{漢字|かんじ}` (group ruby) / `{東京|とう|きょう}`
+  (mono ruby) — Denden Markdown notation; works in vertical writing too
+- **Emphasis dots / lines**: `[text]{.sesame_dot}` (Pandoc-style class span) —
+  bundled CSS for sesame / circle / triangle / double-circle / fisheye /
+  saltire dots and solid-to-wavy lines, in both orientations
 - Title block generated from frontmatter (`title` / `author` / `date`)
 
 ## Usage

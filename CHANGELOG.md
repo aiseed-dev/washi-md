@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.9.0 (2026-07-11)
+
+- 傍点・傍線対応: `[テキスト]{.sesame_dot}` → `<em class="sesame_dot">` —
+  mdit-py-cjk-friendly 0.3 の `bouten` プラグイン(Pandoc 風クラス付きスパン)。
+  text-emphasis / text-decoration の CSS を同梱し、ゴマ点・白ゴマ・丸・三角・
+  二重丸・蛇の目・ばつの傍点と、実線・二重・鎖線・破線・波線の傍線
+  (上線 `overline_*` 含む)を横書き・縦書きの両方で表示できる
+- 依存を mdit-py-cjk-friendly>=0.3 に更新
+
 ## 0.8.0 (2026-07-09)
 
 - ふりがな対応: `{漢字|かんじ}`(グループルビ)・`{東京|とう|きょう}`(モノルビ)
