@@ -44,6 +44,31 @@ hr { border: none; border-top: 1px solid var(--rule); margin: 2.5em auto; width:
 a { color: var(--accent); }
 strong { font-family: var(--sans); font-weight: 700; }
 
+/* 傍点・傍線 (bouten プラグインの <em class>)。青空文庫 decorate.py の
+   COMMAND_TABLE と対応。text-emphasis は横書き・縦書きの両方で機能する。 */
+em.sesame_dot, em.white_sesame_dot, em.black_circle, em.white_circle,
+em.black_up-pointing_triangle, em.white_up-pointing_triangle,
+em.bullseye, em.fisheye, em.saltire { font-style: normal; }
+em.sesame_dot   { text-emphasis: filled sesame;        -webkit-text-emphasis: filled sesame; }
+em.white_sesame_dot { text-emphasis: open sesame;      -webkit-text-emphasis: open sesame; }
+em.black_circle { text-emphasis: filled circle;        -webkit-text-emphasis: filled circle; }
+em.white_circle { text-emphasis: open circle;          -webkit-text-emphasis: open circle; }
+em.black_up-pointing_triangle { text-emphasis: filled triangle; -webkit-text-emphasis: filled triangle; }
+em.white_up-pointing_triangle { text-emphasis: open triangle;   -webkit-text-emphasis: open triangle; }
+em.fisheye      { text-emphasis: filled double-circle; -webkit-text-emphasis: filled double-circle; }
+em.bullseye     { text-emphasis: open double-circle;   -webkit-text-emphasis: open double-circle; }
+em.saltire      { text-emphasis: "\00D7";              -webkit-text-emphasis: "\00D7"; }  /* × ばつ傍点 */
+/* 「左/下に傍点」は文字の反対側へ。縦書きでは text-emphasis-position を切替 */
+em[class$="_after"] { font-style: normal;
+  text-emphasis: filled sesame; -webkit-text-emphasis: filled sesame;
+  text-emphasis-position: under left; -webkit-text-emphasis-position: under left; }
+em[class^="underline_"] { font-style: normal; text-decoration-line: underline; }
+em[class^="overline_"]  { font-style: normal; text-decoration-line: overline; }
+em.underline_double, em.overline_double { text-decoration-style: double; }
+em.underline_dotted { text-decoration-style: dotted; }
+em.underline_dashed { text-decoration-style: dashed; }
+em.underline_wave   { text-decoration-style: wavy; }
+
 @media print {
   html { font-size: 10.5pt; }
   body { max-width: none; margin: 0; padding: 0; }

@@ -18,7 +18,7 @@ import sys
 from pathlib import Path
 
 from markdown_it import MarkdownIt
-from mdit_py_cjk_friendly import cjk_friendly, ruby
+from mdit_py_cjk_friendly import bouten, cjk_friendly, ruby
 
 __version__ = "0.8.0"
 
@@ -124,7 +124,7 @@ def render(text: str, title: str | None = None,
     """Markdown 文字列 → 自己完結の組版済み HTML。"""
     meta, body_md = _frontmatter(text)
     md = (MarkdownIt("commonmark", {"html": True})
-          .enable("table").use(cjk_friendly).use(ruby))
+          .enable("table").use(cjk_friendly).use(ruby).use(bouten))
     body = md.render(body_md)
     if vertical and not genko:
         body = _tcy(body)  # 原稿用紙では縦中横にせず1字1マス (全角化) で組む
