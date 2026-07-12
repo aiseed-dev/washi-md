@@ -1,4 +1,4 @@
-"""washi-md: Markdown から美しい日本語文書 (HTML/PDF) を作る。
+"""pywashi: Markdown から美しい日本語文書 (HTML/PDF) を作る。
 
 使い方:
     washi 入力.md                # → 入力.html (組版済み・自己完結)
@@ -21,7 +21,7 @@ from pathlib import Path
 from markdown_it import MarkdownIt
 from mdit_py_cjk_friendly import bouten, cjk_friendly, ruby
 
-__version__ = "0.9.3"
+__version__ = "0.9.4"
 
 _CSS = (Path(__file__).parent / "style.css").read_text(encoding="utf-8")
 _VERTICAL_CSS = (Path(__file__).parent / "vertical.css").read_text(encoding="utf-8")
@@ -179,11 +179,11 @@ def _frontmatter(text: str) -> tuple[dict, str]:
 
 
 THEMES_DIR = Path(__file__).parent / "themes"
-USER_THEMES_DIR = Path.home() / ".config" / "washi-md" / "themes"
+USER_THEMES_DIR = Path.home() / ".config" / "pywashi" / "themes"
 
 
 def _theme_file(name: str) -> Path | None:
-    """ユーザーテーマ (~/.config/washi-md/themes/) が同梱テーマより優先。"""
+    """ユーザーテーマ (~/.config/pywashi/themes/) が同梱テーマより優先。"""
     for d in (USER_THEMES_DIR, THEMES_DIR):
         f = d / f"{name}.css"
         if f.exists():

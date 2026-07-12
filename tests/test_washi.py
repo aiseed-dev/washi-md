@@ -1,4 +1,4 @@
-"""washi-md の検査。
+"""pywashi の検査。
 
 render(Markdown→自己完結HTML)を厚く、CLI(main)は一巡だけ。
 PDF(Chrome ヘッドレス)は環境依存のため Chrome がある場合のみ実行。
@@ -9,8 +9,8 @@ from pathlib import Path
 
 import pytest
 
-import washi_md
-from washi_md import _find_chrome, _tcy, render, themes
+import pywashi
+from pywashi import _find_chrome, _tcy, render, themes
 
 
 # ---- render: 基本 ----
@@ -236,7 +236,7 @@ def test_cli_writes_html(tmp_path, monkeypatch, capsys):
     src = tmp_path / "doc.md"
     src.write_text("---\ntitle: T\n---\n\n本文。\n", encoding="utf-8")
     monkeypatch.setattr(sys, "argv", ["washi", str(src)])
-    washi_md.main()
+    pywashi.main()
     out_path = tmp_path / "doc.html"
     assert out_path.exists()
     assert "<h1>T</h1>" in out_path.read_text(encoding="utf-8")
@@ -248,7 +248,7 @@ def test_cli_output_and_title(tmp_path, monkeypatch):
     src.write_text("本文。\n", encoding="utf-8")
     dst = tmp_path / "out.html"
     monkeypatch.setattr(sys, "argv", ["washi", str(src), "-o", str(dst), "--title", "表題"])
-    washi_md.main()
+    pywashi.main()
     assert "<title>表題</title>" in dst.read_text(encoding="utf-8")
 
 
@@ -260,7 +260,7 @@ def test_pdf(tmp_path, monkeypatch):
     src = tmp_path / "doc.md"
     src.write_text("# PDF テスト\n\n本文。\n", encoding="utf-8")
     monkeypatch.setattr(sys, "argv", ["washi", str(src), "--pdf"])
-    washi_md.main()
+    pywashi.main()
     pdf = tmp_path / "doc.pdf"
     assert pdf.exists()
     assert pdf.read_bytes()[:5] == b"%PDF-"

@@ -1,13 +1,17 @@
-# washi-md
+# pywashi
 
 日本語 | [English](README.en.md) | [繁體中文](README.zh-TW.md) | [한국어](README.ko.md)
 
-Markdown から**美しい日本語文書** (HTML / PDF) を作るコマンド。
+Markdown から**美しい日本語文書** (HTML / PDF) を作るコマンド `washi`。
 横書きのビジネス文書から、縦書きの小説、原稿用紙まで、
 コマンド一つで日本語らしく組む。
 
+（PyPI/Python パッケージ名は `pywashi`。CLI コマンド名は `washi` のまま。
+旧名 `washi-md` から改称 — "md" が markdown の略語で冗長だったため、
+かつ短い `washi` は既に別プロジェクトが登録していたので `pywashi` に）
+
 ```bash
-pip install washi-md
+pip install pywashi
 
 washi report.md          # → report.html (組版済み・自己完結・1ファイル)
 washi report.md --pdf    # → report.pdf も出力 (Chrome/Chromium ヘッドレス印刷)
@@ -49,7 +53,7 @@ washi INPUT.md [-o OUTPUT.html] [--title 表題] [--pdf]
 Python から:
 
 ```python
-from washi_md import render
+from pywashi import render
 html = render(markdown_text, title="報告書")
 ```
 
@@ -85,14 +89,14 @@ washi 作文.md --genko --vertical --pdf   # 縦書き原稿用紙 (20字/行)
 - `--font-serif "A1明朝"` / `--font-sans "新ゴ M"` — **インストール済みフォントを
   名前で直接指定**。Morisawa Fonts (Select 8 等) で入れた書体がCSSなしで使える。
   PDF生成もローカルレンダリングなのでそのまま効く
-- **ユーザーテーマ**: `~/.config/washi-md/themes/○○.css` に置くと
+- **ユーザーテーマ**: `~/.config/pywashi/themes/○○.css` に置くと
   `--theme ○○` で使える (同名なら同梱テーマより優先)。お気に入りの
   書体構成を場面別に保存しておける
 - `--css my.css` — 自分のCSSを同梱CSSの後に追加 (自分のルールが優先。繰り返し可)
 - `--no-base-css` — 同梱CSSを使わず完全に自分のCSSで組む
 
 ```python
-from washi_md import render
+from pywashi import render
 html = render(md_text, theme="textbook", extra_css=[Path("my.css")])
 ```
 

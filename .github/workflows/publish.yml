@@ -2,8 +2,9 @@ name: publish
 
 # Publishes to PyPI via Trusted Publishing (OIDC) when a v* tag is pushed.
 # One-time setup on pypi.org: Publishing -> add pending publisher
-# "washi-md" -> GitHub aiseed-dev/washi-md, workflow publish.yml,
-# environment pypi.
+# "pywashi" -> GitHub aiseed-dev/pywashi, workflow publish.yml,
+# environment pypi. (Renamed from washi-md; the old project's trusted
+# publisher config does NOT carry over — see RELEASING.md.)
 
 on:
   push:

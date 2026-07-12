@@ -1,4 +1,4 @@
-# washi-md
+# pywashi
 
 [日本語](README.md) | English | [繁體中文](README.zh-TW.md) | [한국어](README.ko.md)
 
@@ -7,10 +7,8 @@ One command covers horizontal business documents, vertical-writing fiction,
 and genkō yōshi (Japanese manuscript paper).
 
 ```bash
-# Until the PyPI release, install from GitHub (dependency first):
 pip install "mdit-py-cjk-friendly @ git+https://github.com/aiseed-dev/mdit-py-cjk-friendly.git"
-pip install "washi-md @ git+https://github.com/aiseed-dev/washi-md.git"
-# After the PyPI release: pip install washi-md
+pip install pywashi
 
 washi report.md          # → report.html (typeset, self-contained, one file)
 washi report.md --pdf    # → report.pdf as well (headless Chrome/Chromium)
@@ -56,7 +54,7 @@ washi INPUT.md [-o OUTPUT.html] [--title TITLE] [--pdf]
 From Python:
 
 ```python
-from washi_md import render
+from pywashi import render
 html = render(markdown_text, title="Report")
 ```
 
@@ -90,7 +88,7 @@ length with `--css` and `body.genko { --genko-cols: 25; }`.
 - `--webfonts` — load Google Fonts so themes work without local fonts
 - `--font-serif "A1 Mincho"` / `--font-sans "Shin Go M"` — use any
   installed font by name (Morisawa Fonts etc.); works for PDF too
-- User themes: drop `~/.config/washi-md/themes/NAME.css` and use
+- User themes: drop `~/.config/pywashi/themes/NAME.css` and use
   `--theme NAME`
 - `--css my.css` — append your own CSS; `--no-base-css` — start from zero
 

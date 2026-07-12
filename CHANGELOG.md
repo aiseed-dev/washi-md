@@ -1,5 +1,19 @@
 # Changelog
 
+## 0.9.4 (2026-07-13) — パッケージ名を washi-md → pywashi に改称
+
+- **PyPI/インポート名を `washi-md`/`washi_md` から `pywashi` に改称**
+  （ユーザー指摘「"md"はmarkdownの略語のはずなので冗長」）。短い
+  `washi` はPyPIで既に別プロジェクト（2018年公開・無関係な研究整理
+  スクリプト）に取られていたため `pywashi` を採用。
+- **CLIコマンド名は `washi` のまま変わらない**（`pip install pywashi` で
+  `washi` コマンドが入る。ブランド名と配布名を分離）。
+- ユーザーテーマの設定ディレクトリも `~/.config/washi-md/themes/` から
+  `~/.config/pywashi/themes/` に変更（要移行）。
+- 旧 `washi-md` パッケージはPyPI上に0.9.1〜0.9.3が残るが、以後の更新は
+  `pywashi` 側でのみ行う。
+- pytest32件（変更なし・全てpywashi名で再確認）。
+
 ## 0.9.3 (2026-07-13)
 
 - admonition(`<div class="admonition {label}">`。pyasciidocのNOTE:/TIP:/

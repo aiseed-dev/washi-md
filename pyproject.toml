@@ -3,7 +3,7 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [project]
-name = "washi-md"
+name = "pywashi"
 dynamic = ["version"]
 description = "Markdown から美しい日本語文書 (HTML/PDF) を作る — 日本語組版CSS・CJKフレンドリー・Chrome印刷"
 readme = "README.md"
@@ -17,13 +17,13 @@ dependencies = ["markdown-it-py>=2.0,<4", "mdit-py-cjk-friendly>=0.3"]
 dev = ["pytest>=8"]
 
 [project.scripts]
-washi = "washi_md:main"
+washi = "pywashi:main"
 
 [project.urls]
-Homepage = "https://github.com/aiseed-dev/washi-md"
+Homepage = "https://github.com/aiseed-dev/pywashi"
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/washi_md"]
+packages = ["src/pywashi"]
 
 [tool.hatch.version]
-path = "src/washi_md/__init__.py"
+path = "src/pywashi/__init__.py"

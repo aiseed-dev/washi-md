@@ -1,4 +1,4 @@
-# washi-md
+# pywashi
 
 [日本語](README.md) | [English](README.en.md) | 繁體中文 | [한국어](README.ko.md)
 
@@ -7,10 +7,8 @@
 (以日文排版為主，但直排與稿紙同樣適用於中文文件。)
 
 ```bash
-# PyPI 發佈前，請從 GitHub 安裝 (先裝相依套件):
 pip install "mdit-py-cjk-friendly @ git+https://github.com/aiseed-dev/mdit-py-cjk-friendly.git"
-pip install "washi-md @ git+https://github.com/aiseed-dev/washi-md.git"
-# PyPI 發佈後: pip install washi-md
+pip install pywashi
 
 washi report.md          # → report.html (已排版、自我完備的單一檔案)
 washi report.md --pdf    # → 另外輸出 report.pdf (Chrome/Chromium 無頭列印)
@@ -52,7 +50,7 @@ washi INPUT.md [-o OUTPUT.html] [--title 標題] [--pdf]
 從 Python 使用:
 
 ```python
-from washi_md import render
+from pywashi import render
 html = render(markdown_text, title="報告")
 ```
 
@@ -85,7 +83,7 @@ washi essay.md --genko --vertical --pdf   # 直排稿紙 (每行20字)
 - `--webfonts` — 載入 Google Fonts，讓沒裝字型的環境也能顯示主題書體
 - `--font-serif "A1明朝"` / `--font-sans "新ゴ M"` — 直接以名稱指定
   已安裝的字型 (Morisawa Fonts 等)，PDF 也同樣生效
-- 使用者主題: 放到 `~/.config/washi-md/themes/名稱.css` 即可用
+- 使用者主題: 放到 `~/.config/pywashi/themes/名稱.css` 即可用
   `--theme 名稱` 呼叫
 - `--css my.css` — 追加自己的 CSS；`--no-base-css` — 完全自訂
 
