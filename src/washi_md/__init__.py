@@ -20,7 +20,7 @@ from pathlib import Path
 from markdown_it import MarkdownIt
 from mdit_py_cjk_friendly import bouten, cjk_friendly, ruby
 
-__version__ = "0.9.0"
+__version__ = "0.9.1"
 
 _CSS = (Path(__file__).parent / "style.css").read_text(encoding="utf-8")
 _VERTICAL_CSS = (Path(__file__).parent / "vertical.css").read_text(encoding="utf-8")
