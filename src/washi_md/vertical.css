@@ -29,10 +29,11 @@ blockquote { margin: 0; margin-block: 1em; padding: 0;
   padding-block: .1em; padding-inline: .2em;
   border-left: none; border-block-start: 3px solid #ccc; }
 
-/* 表とコードは横書きのまま埋め込む (縦書きに混ぜない) */
-pre, table { writing-mode: horizontal-tb; max-width: 100%; }
+/* 表とコード・admonition(注記)は横書きのまま埋め込む (縦書きに混ぜない) */
+pre, table, .admonition { writing-mode: horizontal-tb; max-width: 100%; }
 table { margin-block: 1em; }
 pre { margin: 0; margin-block: 1em; }
+.admonition { margin-block: 1.2em; }
 
 img { max-height: 100%; }
 hr { width: auto; inline-size: 50%; margin: auto; margin-block: 2.5em;

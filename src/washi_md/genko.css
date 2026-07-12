@@ -65,9 +65,19 @@ body.genko .cell:first-child {
   border-block-start: 1px solid var(--genko-line);
 }
 
-/* 表・コードはマス目の外の世界なので原稿用紙モードでは非推奨だが、
-   混ざっても読めるよう背景だけ白にする */
+/* 表・コード・admonition(注記)はマス目の外の世界(1マス1文字方式と
+   ラベル+注記文というブロック構造は噛み合わない・_genko_cellsも
+   admonition中はマス化しない)。原稿用紙モードでは非推奨だが、
+   混ざっても読めるよう地の通常CSS(style.css の .admonition)をそのまま
+   活かし、背景だけ白紙に馴染ませる。 */
 body.genko pre, body.genko table { background: #fff; border: none; }
+body.genko .admonition { background: #fff; }
+/* 上の「body.genko p{display:inline}」等の平文向けリセットは admonition の
+   中には適用しない(通常CSSのブロック表示に戻す。セレクタの詳細度を
+   上げて上書き)。 */
+body.genko .admonition p, body.genko .admonition-label {
+  display: block; margin: revert; font-size: revert; font-family: revert;
+}
 
 @media print {
   /* A4・12pt・20マス/列 → おおむね 20行/頁 = 400字詰め相当 */

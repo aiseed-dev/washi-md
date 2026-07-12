@@ -21,7 +21,7 @@ from pathlib import Path
 from markdown_it import MarkdownIt
 from mdit_py_cjk_friendly import bouten, cjk_friendly, ruby
 
-__version__ = "0.9.2"
+__version__ = "0.9.3"
 
 _CSS = (Path(__file__).parent / "style.css").read_text(encoding="utf-8")
 _VERTICAL_CSS = (Path(__file__).parent / "vertical.css").read_text(encoding="utf-8")
@@ -48,6 +48,12 @@ class _GenkoCellWrapper(HTMLParser):
     原理的に起きない。ルビの読み（rt/rp）・pre/code/table の中身は
     マス目の対象外（rt/rpは元々半角の添え物・pre/code/tableは横組みの
     まま埋め込む方針は変えない）。
+
+    admonition(pyasciidocのNOTE:/WARNING:等が出す<div class="admonition
+    ...">)も同様にマス目の対象外。1マス1文字方式は地の文の散文が前提で、
+    ラベル+注記文というブロック構造とは噛み合わない（実際にgenko文書へ
+    admonitionを混ぜてレンダリングし、ラベルの文字までマス目に分解されて
+    崩れることを確認して対応）。
     """
 
     _SKIP_TAGS = {"rt", "rp", "pre", "code", "table"}
@@ -60,18 +66,32 @@ class _GenkoCellWrapper(HTMLParser):
         super().__init__(convert_charrefs=True)
         self.out: list[str] = []
         self._skip_stack: list[str] = []
+        # admonition div のネスト深さ(0=外)。stack名を使い回さないのは、
+        # 万一admonition内にdivが入れ子になっても正しく数えられるように。
+        self._admonition_depth = 0
+
+    def _in_admonition(self) -> bool:
+        return self._admonition_depth > 0
 
     def handle_starttag(self, tag: str, attrs) -> None:
         self.out.append(self.get_starttag_text() or f"<{tag}>")
         if tag in self._SKIP_TAGS:
             self._skip_stack.append(tag)
-        if tag == "p":
+        if tag == "div":
+            is_admonition = any(
+                name == "class" and value and "admonition" in value
+                for name, value in attrs
+            )
+            if is_admonition or self._in_admonition():
+                self._admonition_depth += 1
+        if tag == "p" and not self._in_admonition():
             # 段落先頭の字下げ(全角スペース1字ぶん)。地の文の字下げは
             # CommonMarkの行頭空白トリムで失われる（markdown-it自体が
             # 行頭の全角スペースも剥がす・実測で確認）ため、原稿用紙の
             # 慣例どおり段落先頭に空マスを1つ機械的に足す。
             # display:inlineのpにはtext-indentが効かない（仕様上非対応）
-            # ため、この明示的な空マス方式に作り直した。
+            # ため、この明示的な空マス方式に作り直した。admonition内の
+            # p（ラベル・注記文）はマス目の対象外なので付けない。
             self.out.append('<span class="cell"></span>')
 
     def handle_startendtag(self, tag: str, attrs) -> None:
@@ -81,9 +101,11 @@ class _GenkoCellWrapper(HTMLParser):
         self.out.append(f"</{tag}>")
         if self._skip_stack and self._skip_stack[-1] == tag:
             self._skip_stack.pop()
+        if tag == "div" and self._admonition_depth > 0:
+            self._admonition_depth -= 1
 
     def handle_data(self, data: str) -> None:
-        if self._skip_stack:
+        if self._skip_stack or self._in_admonition():
             self.out.append(_html.escape(data))
             return
         for ch in data:

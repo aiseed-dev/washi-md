@@ -144,6 +144,39 @@ def test_genko_paragraph_gets_leading_indent_cell():
     assert '<p><span class="cell"></span><span class="cell">字</span>' in body
 
 
+def test_genko_admonition_is_not_cell_wrapped():
+    """admonition(pyasciidocのNOTE:等が出す<div class="admonition">)は
+    1マス1文字方式の対象外 —— ラベル+注記文というブロック構造は原稿用紙の
+    マス目と噛み合わない(実際にgenko文書へ混ぜてレンダリングし、ラベルの
+    文字までマス目に分解されて崩れることを確認して対応)。"""
+    text = (
+        "本文。\n\n"
+        '<div class="admonition note">\n'
+        '<p class="admonition-label">NOTE</p>\n'
+        "<p>注記の中身。</p>\n"
+        "</div>\n\n"
+        "続きの本文。\n"
+    )
+    out = render(text, vertical=True, genko=True)
+    body = out.split("<body", 1)[1]
+    assert '<p class="admonition-label">NOTE</p>' in body
+    assert "<p>注記の中身。</p>" in body
+    assert '<span class="cell">N</span>' not in body
+    assert '<span class="cell">注</span>' not in body
+    # admonition前後の地の文は変わらずマス化される
+    assert '<span class="cell">本</span>' in body
+    assert '<span class="cell">続</span>' in body
+
+
+def test_genko_admonition_paragraphs_stay_block_display():
+    """admonition内の<p>はgenko既定のdisplay:inline化(平文向けリセット)を
+    打ち消すCSSが同梱されている。受けないままだとラベルと本文が1行に
+    混ざって読めなくなる。"""
+    out = render("dummy\n", vertical=True, genko=True)
+    css = out.split("<style>", 1)[1].split("</style>", 1)[0]
+    assert ".admonition p" in css and "display: block" in css
+
+
 def test_render_author_param_shows_in_doc_meta():
     out = render("本文。\n", title="表題", author="作者名")
     assert '<p class="doc-meta">作者名</p>' in out

@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.9.3 (2026-07-13)
+
+- admonition(`<div class="admonition {label}">`。pyasciidocのNOTE:/TIP:/
+  IMPORTANT:/WARNING:/CAUTION:が出すマークアップ)用のCSSを追加
+  （種別ごとの左罫線色+薄い背景色）。
+- 原稿用紙(genko)モードでadmonitionを1マス1文字方式のマス化対象外にした
+  ——ラベル+注記文というブロック構造は原稿用紙のマス目と噛み合わず、
+  実際に混ぜてレンダリングするとラベルの文字までマス目に分解されて
+  崩れることを確認して対応。`_genko_cells`にadmonition div内をスキップする
+  ロジックを追加し、genko.cssでも横書き(writing-mode:horizontal-tb)に
+  固定・平文向けdisplay:inlineリセットを打ち消すオーバーライドを追加。
+- pytest32件（新規2件）。
+
 ## 0.9.2 (2026-07-13)
 
 - 原稿用紙(`genko=True`)のマス目を作り直し: 背景CSSグラデーションでマス目を

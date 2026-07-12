@@ -69,11 +69,34 @@ em.underline_dotted { text-decoration-style: dotted; }
 em.underline_dashed { text-decoration-style: dashed; }
 em.underline_wave   { text-decoration-style: wavy; }
 
+/* admonition(注記) ── pyasciidocのNOTE:/TIP:/IMPORTANT:/WARNING:/CAUTION:
+   (<div class="admonition {label}">) 用。genko(原稿用紙)ではさらに
+   横書きへ固定される(vertical.css)。 */
+.admonition {
+  margin: 1em 0;
+  padding: 0.6em 1em;
+  border-inline-start: 4px solid var(--admonition-color, var(--rule));
+  background: color-mix(in srgb, var(--admonition-color, var(--rule)) 8%, transparent);
+}
+.admonition > :last-child { margin-bottom: 0; }
+.admonition-label {
+  margin: 0 0 0.3em;
+  font-weight: 700;
+  font-size: 0.85em;
+  letter-spacing: 0.05em;
+  color: var(--admonition-color, var(--rule));
+}
+.admonition.note { --admonition-color: #1d4ed8; }
+.admonition.tip { --admonition-color: #2a5d8f; }
+.admonition.important { --admonition-color: #7c1d9e; }
+.admonition.warning { --admonition-color: #b45309; }
+.admonition.caution { --admonition-color: #b91c1c; }
+
 @media print {
   html { font-size: 10.5pt; }
   body { max-width: none; margin: 0; padding: 0; }
   a { color: inherit; text-decoration: none; }
-  pre, blockquote, table, figure { break-inside: avoid; }
+  pre, blockquote, table, figure, .admonition { break-inside: avoid; }
   h2, h3 { break-after: avoid; }
 }
 @page {
