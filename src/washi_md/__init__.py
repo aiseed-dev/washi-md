@@ -120,8 +120,15 @@ def render(text: str, title: str | None = None,
            extra_css: list[Path] | None = None, base_css: bool = True,
            webfonts: bool = False, font_serif: str | None = None,
            font_sans: str | None = None, vertical: bool = False,
-           genko: bool = False) -> str:
-    """Markdown 文字列 → 自己完結の組版済み HTML。"""
+           genko: bool = False, font_size: float | None = None,
+           extra_style: str | None = None) -> str:
+    """Markdown 文字列 → 自己完結の組版済み HTML。
+
+    font_size: 基準の文字サイズ(px)。既定CSSは15px（画面向け）なので、
+        印刷では大きめを推奨 —— A4縦書きなら 24 で約40字/列、
+        原稿用紙(genko)なら 24 で1マス約6.4mm（A4横置き）。
+    extra_style: 生のCSSを末尾に足す（例 '@page{size:A4 landscape}'）。
+    """
     meta, body_md = _frontmatter(text)
     md = (MarkdownIt("commonmark", {"html": True})
           .enable("table").use(cjk_friendly).use(ruby).use(bouten))
@@ -155,8 +162,12 @@ def render(text: str, title: str | None = None,
         if font_sans:
             over += f" --sans: '{font_sans}', 'BIZ UDPGothic', sans-serif;"
         parts.append(over + " }")
+    if font_size:
+        parts.append(f"html {{ font-size: {font_size}px; }}")
     for f in extra_css or []:
         parts.append(Path(f).read_text(encoding="utf-8"))
+    if extra_style:
+        parts.append(extra_style)
     css = "\n".join(parts)
     if embed_fonts:
         css = _embed_fonts_css(Path(embed_fonts)) + "\n" + css

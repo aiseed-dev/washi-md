@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.9.1 (2026-07-12)
+
+- `render()` に `font_size`（基準文字サイズpx・印刷はA4縦書き24px≈40字/列を推奨）と
+  `extra_style`（生CSS追記・例 `@page{size:A4 landscape}`）を追加。
+  青空文庫ワープロ（pykobo 執筆タブ）の「文字が小さすぎる」実需から。
+
 ## 0.9.0 (2026-07-11)
 
 - 傍点・傍線対応: `[テキスト]{.sesame_dot}` → `<em class="sesame_dot">` —
