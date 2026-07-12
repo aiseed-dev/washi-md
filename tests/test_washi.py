@@ -98,6 +98,62 @@ def test_genko_class_without_tcy():
     assert "tcy" not in out.split("</style>")[-1]  # 原稿用紙では縦中横にしない
 
 
+def test_genko_wraps_every_character_in_a_cell():
+    """マス目は文字自身の箱(<span class="cell">)——文字数+段落先頭の
+    字下げマス1つぶん出る。"""
+    out = render("メロスは激怒した。\n", vertical=True, genko=True)
+    body = out.split("<body", 1)[1]
+    assert body.count('class="cell"') == len("メロスは激怒した。") + 1
+    assert '<p><span class="cell"></span><span class="cell">メ</span>' in body
+
+
+def test_genko_ideographic_space_gets_its_own_cell():
+    """全角スペース(U+3000)はマスを1つ占める（段落先頭の字下げはCommonMark
+    の仕様で行頭空白として別途トリムされるため、文中の全角空白で検証）。"""
+    out = render("間に　空白がある文。\n", vertical=True, genko=True)
+    body = out.split("<body", 1)[1]
+    assert body.count('class="cell"') == len("間に　空白がある文。") + 1
+    assert '<span class="cell">　</span>' in body
+
+
+def test_genko_ruby_base_gets_cells_but_reading_does_not():
+    """ルビの親文字は1文字1マス、読み(rt/rp)はマス化の対象外。"""
+    out = render("{吾輩|わがはい}は猫である。\n", vertical=True, genko=True)
+    body = out.split("<body", 1)[1]
+    assert '<span class="cell">吾</span><span class="cell">輩</span>' in body
+    assert '<rt>わがはい</rt>' in body
+    assert '<span class="cell">わ</span>' not in body
+
+
+def test_genko_first_cell_is_first_child_of_its_paragraph():
+    """CSSの.cell:first-childで開始側の枠線を閉じるため、各段落の最初の
+    要素が直接<span class="cell">であること（間に他の要素を挟まない）。"""
+    out = render("一行目。\n\n二行目。\n", vertical=True, genko=True)
+    body = out.split("<body", 1)[1]
+    assert body.count("<p>") == 2
+    assert body.count('<p><span class="cell">') == 2
+
+
+def test_genko_paragraph_gets_leading_indent_cell():
+    """段落先頭に空マス1つ(字下げ)を機械的に足す —— display:inlineの<p>には
+    text-indentが効かない(CSS仕様上非対応)ため、明示的な空セルで代替。
+    地の文自身の全角スペースはCommonMarkの行頭空白トリムで失われる
+    （markdown-it自体が剥がす）ため、この機械挿入が字下げの実体になる。"""
+    out = render("字下げなしで書いた文。\n", vertical=True, genko=True)
+    body = out.split("<body", 1)[1]
+    assert '<p><span class="cell"></span><span class="cell">字</span>' in body
+
+
+def test_render_author_param_shows_in_doc_meta():
+    out = render("本文。\n", title="表題", author="作者名")
+    assert '<p class="doc-meta">作者名</p>' in out
+
+
+def test_render_author_falls_back_to_frontmatter():
+    out = render("---\ntitle: 表題\nauthor: front名義\n---\n本文。\n")
+    assert '<p class="doc-meta">front名義</p>' in out
+
+
 # ---- テーマ・CSS ----
 
 

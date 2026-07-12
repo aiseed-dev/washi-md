@@ -1,80 +1,76 @@
-/* washi-md 原稿用紙 (--genko) — マス目グリッド。縦書き (--vertical 併用) と
-   横書きの両対応。1マス = 1em のベタ組にグリッド背景を重ねる。
-   行送り = 2em (マス 1em + 行間 1em)。既定 20字/行 (--genko-cols で変更可)。 */
+/* washi-md 原稿用紙 (--genko) — 1文字=1マスの箱（<span class="cell">）に
+   枠線を引く方式。文字の箱そのものがマス目の枠線を持つので、フォントの
+   行送り計算と理想値の食い違いによる「行を追うごとにマス目とずれる」
+   問題が原理的に起きない（背景グラデーション方式からの作り直し・
+   2026-07-13。文字を1マスずつ<span class="cell">に包む処理は
+   __init__.py の _genko_cells が担う）。縦書き(--vertical併用)と
+   横書きの両対応。既定 20字/行 (--genko-cols で変更可)。
+
+   枠線は「二重線防止」のため各マスの終端側(inline-end/block-end)だけが
+   持ち、先頭側(start)は各ブロック要素（p/h1等）自身が閉じる。 */
 body.genko {
-  --genko-cols: 20;                 /* 1行の字数 */
-  --genko-line: #c8b294;            /* マス目の色 (原稿用紙の薄茶) */
-  --g: .5em;                        /* 行間の半分 = (行送り2em − マス1em)/2 */
-  line-height: 2;
+  --genko-cols: 20;             /* 1行(1マスの列)の字数 */
+  --genko-line: #c8b294;        /* マス目の色 (原稿用紙の薄茶) */
+  /* inline-size は論理プロパティ ── 横書きではwidth、
+     writing-mode:vertical-rl（縦書き）ではheightに自動対応する。
+     これで「1行(列)ぶんの字数で折り返す」を両モード共通の1行で書ける。 */
+  inline-size: calc(var(--genko-cols) * 1em);
+  max-inline-size: none;
+  line-height: 1;
   font-feature-settings: "palt" 0;
   text-align: start;
-  text-spacing-trim: space-all;     /* 約物も全角のまま (マス目維持) */
+  text-spacing-trim: space-all; /* 約物も全角のまま (マス目維持) */
   hanging-punctuation: none;
   letter-spacing: 0;
-  text-transform: full-width;       /* 半角英数を全角にしてマスに収める */
-  background-origin: content-box;
-  background-clip: content-box;
-  box-decoration-break: clone;      /* ページごとにグリッドを描き直す */
+  background: none;
   padding: 0;
 }
 
 /* 見出し・装飾は平文と同じ大きさに落とす (マス目が崩れないように) */
 body.genko h1, body.genko h2, body.genko h3, body.genko h4 {
   font-size: 1em; line-height: inherit; margin: 0; padding: 0; border: none;
-  font-family: inherit;
+  font-family: inherit; display: inline;
 }
-body.genko p { margin: 0; text-indent: 1em; }
+body.genko p { margin: 0; display: inline; }
 body.genko .doc-meta { margin: 0; padding: 0; border: none; font-size: 1em;
-  font-family: inherit; color: inherit; }
+  font-family: inherit; color: inherit; display: inline; }
 body.genko blockquote { margin: 0; padding: 0; border: none; font-size: 1em;
-  color: inherit; }
+  color: inherit; display: inline; }
 body.genko hr { display: none; }
 body.genko strong { font-family: inherit; }
 
-/* --- 横書き: 行は上→下、マスは左→右 --- */
-body.genko:not(.vertical) {
-  width: calc(var(--genko-cols) * 1em);
-  max-width: none;
-  background-image:
-    /* 行の枠 (上下の罫) と行間の白帯。グリフは行ボックス中央 (半leading .5em) */
-    repeating-linear-gradient(to bottom,
-      #fff 0, #fff calc(var(--g) - 1px),
-      var(--genko-line) calc(var(--g) - 1px), var(--genko-line) var(--g),
-      transparent var(--g), transparent calc(var(--g) + 1em),
-      var(--genko-line) calc(var(--g) + 1em),
-      var(--genko-line) calc(var(--g) + 1em + 1px),
-      #fff calc(var(--g) + 1em + 1px), #fff 2em),
-    /* マスの区切り (縦線、1em ごと) */
-    repeating-linear-gradient(to right,
-      var(--genko-line) 0, var(--genko-line) 1px,
-      transparent 1px, transparent calc(1em - 1px),
-      var(--genko-line) calc(1em - 1px), var(--genko-line) 1em);
+/* マス本体。マスの中身は中央寄せ、枠線は終端側(右/下相当)だけ持つ。
+   box-sizing:border-box が要 ── content-boxだと枠線ぶん(1px)が
+   マス寸法の外に足されて累積し、genko-cols字で折り返すはずが
+   1字ずつ早く折り返ってしまう（実測で確認・off-by-one）。 */
+body.genko .cell {
+  display: inline-block;
+  box-sizing: border-box;
+  inline-size: 1em;
+  block-size: 1em;
+  line-height: 1;
+  text-align: center;
+  vertical-align: top;
+  border-inline-end: 1px solid var(--genko-line);
+  border-block-end: 1px solid var(--genko-line);
 }
 
-/* --- 縦書き: 行は右→左、マスは上→下 --- */
-body.vertical.genko {
-  height: calc(var(--genko-cols) * 1em);
-  max-height: none;
-  background-image:
-    repeating-linear-gradient(to left,
-      #fff 0, #fff calc(var(--g) - 1px),
-      var(--genko-line) calc(var(--g) - 1px), var(--genko-line) var(--g),
-      transparent var(--g), transparent calc(var(--g) + 1em),
-      var(--genko-line) calc(var(--g) + 1em),
-      var(--genko-line) calc(var(--g) + 1em + 1px),
-      #fff calc(var(--g) + 1em + 1px), #fff 2em),
-    repeating-linear-gradient(to bottom,
-      var(--genko-line) 0, var(--genko-line) 1px,
-      transparent 1px, transparent calc(1em - 1px),
-      var(--genko-line) calc(1em - 1px), var(--genko-line) 1em);
+/* 先頭側の枠線は「その段落・見出しの最初のマス自身」が閉じる
+   （border-boxなので寸法(1em)は変わらず、二重線にもならない）。
+   p/h1 等の display:inline な要素にボーダーを持たせると、その分が
+   行の折返し計算に食い込んで genko-cols 字より早く折り返ってしまう
+   （実測で確認・段落側からマス側へ付け替えて解消）。 */
+body.genko .cell:first-child {
+  border-inline-start: 1px solid var(--genko-line);
+  border-block-start: 1px solid var(--genko-line);
 }
 
 /* 表・コードはマス目の外の世界なので原稿用紙モードでは非推奨だが、
    混ざっても読めるよう背景だけ白にする */
-body.genko pre, body.genko table { background: #fff; }
+body.genko pre, body.genko table { background: #fff; border: none; }
 
 @media print {
-  /* A4・12pt・20字×行送り2em → おおむね 20行/頁 = 400字詰め相当 */
+  /* A4・12pt・20マス/列 → おおむね 20行/頁 = 400字詰め相当 */
   html { font-size: 12pt; }
   body.genko { margin: 0; }
 }
