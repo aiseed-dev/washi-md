@@ -5,7 +5,7 @@ build-backend = "hatchling.build"
 [project]
 name = "pywashi"
 dynamic = ["version"]
-description = "Markdown から美しい日本語文書 (HTML/PDF) を作る — 日本語組版CSS・CJKフレンドリー・Chrome印刷"
+description = "Markdown/AsciiDoc から美しい日本語文書 (HTML/PDF) を作る — 日本語組版CSS・CJKフレンドリー・Chrome印刷"
 readme = "README.md"
 requires-python = ">=3.9"
 license = { text = "MIT" }
@@ -15,6 +15,7 @@ dependencies = ["markdown-it-py>=2.0,<4", "mdit-py-cjk-friendly>=0.3"]
 
 [project.optional-dependencies]
 dev = ["pytest>=8"]
+asciidoc = ["pyasciidoc>=0.3"]
 
 [project.scripts]
 washi = "pywashi:main"

@@ -1,5 +1,25 @@
 # Changelog
 
+## 0.9.5 (2026-07-13) — AsciiDoc入力に対応
+
+- `render(text, format="asciidoc")` / CLIの `--format asciidoc`
+  （`.adoc`/`.asciidoc`拡張子は自動判定）で、AsciiDoc本文を組版できる
+  ように。構文の解釈自体は別パッケージ
+  [pyasciidoc](https://github.com/aiseed-dev/pyasciidoc)に委譲し、
+  washiは受け取ったHTMLを従来どおり整形するだけ（見出し・強調・
+  admonition・箇条書きの解釈がpyasciidoc、フォント・組版CSS・縦書き・
+  原稿用紙・PDF化はすべてwashi側で変わらず適用される）。
+- ふりがな({漢字|かんじ})・傍点/傍線([対象]{.class})はwashi独自の記法
+  なので、AsciiDoc本文中でもそのまま使える(pyasciidoc.asciidocに加えて
+  ruby/boutenプラグインを合成)。
+- ヘッドレスChromeで実際に「見出し＋強調＋admonition＋箇条書き＋ふりがな」
+  を含むAsciiDoc文書を縦書き・原稿用紙モードでレンダリングし、genkoの
+  マス目・ルビの分離まで正しく動くことを確認。
+- pyasciidoc未導入で`format="asciidoc"`を使うと分かりやすいエラーに
+  なる(黙ってMarkdownとして解釈したりしない)。
+- 新規オプション依存 `pywashi[asciidoc]`（`pyasciidoc>=0.3`）。
+- pytest37件（新規5件）。
+
 ## 0.9.4 (2026-07-13) — パッケージ名を washi-md → pywashi に改称
 
 - **PyPI/インポート名を `washi-md`/`washi_md` から `pywashi` に改称**

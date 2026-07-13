@@ -275,3 +275,60 @@ def test_ruby_mono_with_vertical():
     html = render("{東京|とう|きょう}", vertical=True)
     assert "<ruby>東<rp>(</rp><rt>とう</rt><rp>)</rp>" in html
     assert "writing-mode: vertical-rl" in html
+
+
+# ---- format="asciidoc"(要 pyasciidoc) ----
+
+
+def test_asciidoc_format_renders_headings_emphasis_admonition_list():
+    pytest.importorskip("pyasciidoc")
+    html = render(
+        "= 表題\n\nこれは*重要*です。\n\nNOTE: 補足の注記。\n\n* 項目1\n* 項目2\n",
+        format="asciidoc",
+    )
+    body = html.split("<body", 1)[1]
+    assert "<h1>表題</h1>" in body
+    assert "<strong>重要</strong>" in body
+    assert '<div class="admonition note">' in body
+    assert "<li>項目1</li>" in body
+
+
+def test_asciidoc_format_composes_with_ruby_and_bouten():
+    """AsciiDoc本文でもwashi独自のふりがな({漢字|かんじ})・傍点
+    ([対象]{.class})記法がそのまま使える(AsciiDoc自体には無い構文)。"""
+    pytest.importorskip("pyasciidoc")
+    html = render("吾輩は{猫|ねこ}である。[名前]{.sesame_dot}はまだ無い。",
+                  format="asciidoc")
+    assert "<ruby>猫<rp>(</rp><rt>ねこ</rt><rp>)</rp></ruby>" in html
+    assert '<em class="sesame_dot">名前</em>' in html
+
+
+def test_asciidoc_format_works_with_vertical_and_genko():
+    pytest.importorskip("pyasciidoc")
+    html = render("= 表題\n\n本文。\n", format="asciidoc",
+                  vertical=True, genko=True)
+    body = html.split("<body", 1)[1]
+    assert 'class="vertical genko"' in html
+    assert '<span class="cell">本</span>' in body
+
+
+def test_unknown_format_raises_value_error():
+    with pytest.raises(ValueError, match="markdown"):
+        render("text", format="not-a-real-format")
+
+
+def test_asciidoc_format_without_pyasciidoc_raises_clear_error(monkeypatch):
+    """pyasciidoc未導入でformat='asciidoc'を使うと分かりやすいエラーに
+    なる(黙ってMarkdownとして解釈したりしない)。"""
+    import builtins
+
+    real_import = builtins.__import__
+
+    def fake_import(name, *a, **kw):
+        if name == "pyasciidoc":
+            raise ImportError("pyasciidoc not installed (test)")
+        return real_import(name, *a, **kw)
+
+    monkeypatch.setattr(builtins, "__import__", fake_import)
+    with pytest.raises(ValueError, match="pyasciidoc"):
+        render("= 表題\n", format="asciidoc")

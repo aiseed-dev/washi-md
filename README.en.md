@@ -39,6 +39,11 @@ washi report.md --pdf    # → report.pdf as well (headless Chrome/Chromium)
 - **Emphasis dots / lines**: `[text]{.sesame_dot}` (Pandoc-style class span) —
   bundled CSS for sesame / circle / triangle / double-circle / fisheye /
   saltire dots and solid-to-wavy lines, in both orientations
+- **AsciiDoc input**, too (requires [pyasciidoc](https://github.com/aiseed-dev/pyasciidoc);
+  auto-detected from `.adoc`/`.asciidoc`, or `--format asciidoc`): headings,
+  emphasis, admonitions, and lists, while furigana/emphasis-dots notation
+  still works right inside the AsciiDoc body (washi adds what AsciiDoc
+  itself doesn't have)
 - Title block generated from frontmatter (`title` / `author` / `date`)
 
 ## Usage
@@ -49,6 +54,7 @@ washi INPUT.md [-o OUTPUT.html] [--title TITLE] [--pdf]
       [--vertical] [--genko]
       [--font-serif NAME] [--font-sans NAME] [--webfonts]
       [--css FILE ...] [--no-base-css] [--embed-fonts DIR]
+      [--format markdown|asciidoc]
 ```
 
 From Python:
@@ -56,6 +62,7 @@ From Python:
 ```python
 from pywashi import render
 html = render(markdown_text, title="Report")
+html = render(asciidoc_text, title="Report", format="asciidoc")  # needs pyasciidoc
 ```
 
 ## Vertical writing

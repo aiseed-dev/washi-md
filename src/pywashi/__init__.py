@@ -21,7 +21,7 @@ from pathlib import Path
 from markdown_it import MarkdownIt
 from mdit_py_cjk_friendly import bouten, cjk_friendly, ruby
 
-__version__ = "0.9.4"
+__version__ = "0.9.5"
 
 _CSS = (Path(__file__).parent / "style.css").read_text(encoding="utf-8")
 _VERTICAL_CSS = (Path(__file__).parent / "vertical.css").read_text(encoding="utf-8")
@@ -199,25 +199,56 @@ def themes() -> list[str]:
     return sorted(names)
 
 
+def _build_parser(format: str) -> MarkdownIt:
+    """入力方言(Markdown/AsciiDoc) → HTML化する MarkdownIt を組み立てる。
+
+    フォント・組版CSS・縦書き/原稿用紙・PDF化はすべて入力方言と無関係
+    (HTML文字列を受け取った後の処理)なので、ここでの分岐だけで
+    render() 全体がAsciiDoc入力にも対応する。
+    """
+    if format == "markdown":
+        return (MarkdownIt("commonmark", {"html": True})
+                .enable("table").use(cjk_friendly).use(ruby).use(bouten))
+    if format == "asciidoc":
+        try:
+            import pyasciidoc
+        except ImportError as exc:
+            raise ValueError(
+                "format='asciidoc' には pyasciidoc が要ります "
+                "(pip install pywashi[asciidoc] または pip install pyasciidoc)"
+            ) from exc
+        # pyasciidoc.asciidoc は内部で cjk_friendly を有効にする(見出し・
+        # コメント・admonition・リスト・制約あり強調)。ふりがな(ruby)・
+        # 傍点/傍線(bouten)はAsciiDoc構文には無いのでwashi側から追加で
+        # 合成する(でんでん記法 {漢字|かんじ} 等はAsciiDoc本文中でも
+        # そのまま使える)。
+        return (MarkdownIt("commonmark", {"html": True})
+                .enable("table").use(pyasciidoc.asciidoc).use(ruby).use(bouten))
+    raise ValueError(f"未知のformat: {format!r}（'markdown'か'asciidoc'を指定）")
+
+
 def render(text: str, title: str | None = None, author: str | None = None,
            embed_fonts: Path | None = None, theme: str = "default",
            extra_css: list[Path] | None = None, base_css: bool = True,
            webfonts: bool = False, font_serif: str | None = None,
            font_sans: str | None = None, vertical: bool = False,
            genko: bool = False, font_size: float | None = None,
-           extra_style: str | None = None) -> str:
-    """Markdown 文字列 → 自己完結の組版済み HTML。
+           extra_style: str | None = None, format: str = "markdown") -> str:
+    """Markdown(既定)またはAsciiDoc文字列 → 自己完結の組版済み HTML。
 
     author: 書誌の著者名（見出し直下に表示）。未指定ならfrontmatterの
         `author:` を使う（どちらも無ければ表示しない）。
+    format: 'markdown'(既定)または'asciidoc'。AsciiDoc入力の解釈は
+        別パッケージ pyasciidoc に委譲する(要 `pip install pyasciidoc`
+        または `pip install pywashi[asciidoc]`)。ふりがな({漢字|かんじ})・
+        傍点/傍線([対象]{.class})はどちらのformatでも共通して使える。
     font_size: 基準の文字サイズ(px)。既定CSSは15px（画面向け）なので、
         印刷では大きめを推奨 —— A4縦書きなら 24 で約40字/列、
         原稿用紙(genko)なら 24 で1マス約6.4mm（A4横置き）。
     extra_style: 生のCSSを末尾に足す（例 '@page{size:A4 landscape}'）。
     """
     meta, body_md = _frontmatter(text)
-    md = (MarkdownIt("commonmark", {"html": True})
-          .enable("table").use(cjk_friendly).use(ruby).use(bouten))
+    md = _build_parser(format)
     body = md.render(body_md)
     if vertical and not genko:
         body = _tcy(body)  # 原稿用紙では縦中横にせず1字1マス (全角化) で組む
@@ -328,8 +359,14 @@ def main() -> None:
     ap.add_argument("--embed-fonts", type=Path, metavar="DIR",
                     help="BIZ UD フォント (woff2) を HTML に埋め込む (SIL OFL)。"
                          "DIR に BIZUDPMincho-Regular.woff2 等を置く")
+    ap.add_argument("--format", choices=["markdown", "asciidoc"],
+                    help="入力方言 (既定は拡張子で判定: .adoc/.asciidoc → "
+                         "asciidoc、それ以外 → markdown。要 pyasciidoc)")
     ap.add_argument("--version", action="version", version=__version__)
     args = ap.parse_args()
+
+    fmt = args.format or (
+        "asciidoc" if args.input.suffix in (".adoc", ".asciidoc") else "markdown")
 
     out = args.output or args.input.with_suffix(".html")
     out.write_text(render(args.input.read_text(encoding="utf-8"), args.title,
@@ -337,7 +374,7 @@ def main() -> None:
                           extra_css=args.css, base_css=not args.no_base_css,
                           webfonts=args.webfonts, font_serif=args.font_serif,
                           font_sans=args.font_sans, vertical=args.vertical,
-                          genko=args.genko),
+                          genko=args.genko, format=fmt),
                    encoding="utf-8")
     print(out)
     if args.pdf:
