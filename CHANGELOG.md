@@ -1,5 +1,50 @@
 # Changelog
 
+## 0.10.1 (2026-07-17) — レビュー指摘の修正（縦書き×フォーム・XSS面・API作法）
+
+0.10.0 リリース後のマルチエージェントレビューで見つかった不具合の修正。
+
+- **縦書き(vertical)＋`[.form]` でフォーム定義JSONが壊れる不具合**:
+  縦中横処理(`_tcy`)が `<script type="application/json">` の中身にも
+  `<span class="tcy">` を注入し、`"maxlength":20` のような1〜2桁数値や
+  「!?」を含む定義で `JSON.parse` が落ちてフォームが全滅していた。
+  `<script>`/`<style>` の中身と文字参照(`&#39;`等)を縦中横の対象外に。
+- **原稿用紙(genko)＋`[.form]` でも同様にJSONが壊れる不具合**:
+  1字1マス処理が `<script>` 内を `<span class="cell">` で分解し `"` を
+  `&quot;` に化かしていた。script/style をマス目対象外＋無加工に。
+- **【セキュリティ】asciidoc モードで生HTMLブロックが素通し**:
+  pyasciidoc を `html: True` で合成していたため html_block だけが有効に
+  残り、`<script>…</script>` がそのまま出力されていた(pyasciidoc 単体
+  では防がれる)。AsciiDoc に生HTML素通しの構文は無いので `html: False`
+  で合成する。markdown モードの生HTML許可は従来どおり。
+- **`to_pdf()` が Chrome 不在時に `sys.exit()` を呼んでいた**: SystemExit
+  は `except Exception` に捕まらず、呼び出し側(bunko等)のワーカーが
+  黙って死ぬ。RuntimeError に変更(CLI は従来どおりメッセージ終了)。
+- **`[.form]` が段落直後(空行なし)だと markdown 入力で効かない不具合**:
+  ブロックルールに `alt=["paragraph"]` を指定(asciidoc 入力では
+  ad_role_block の alt に相乗りして偶々動いていた)。
+- **CRLF改行の文書で frontmatter が認識されない不具合**: `---` の照合を
+  `\r?\n` に。Windows 由来の文書でも title/author が拾われる。
+
+## 0.10.0 (2026-07-17) — フォーム（[.form]）に対応
+
+- **`[.form]` ブロック → 対話的フォーム**。本文中に `[.form]` を置き、
+  直後（空行まで）にフォーム定義JSONを書くと、その位置に確認画面つきの
+  フォームが描かれる。Markdown・AsciiDoc どちらの入力でも使える
+  （新プラグイン `pywashi.form`、`.use(form)` を両パーサに合成）。
+- 定義は**生JSONとして捕まえる**（インライン解析しないので中身が壊れない）。
+  `</script>` 注入を防ぐため出力時に `<` をエスケープ。壊れたJSONは黙って
+  消さず、その場にエラー表示を出す（著述時に気づける）。
+- 本文に `[.form]` がある**ページだけ**、描画資産（`form.css` を同じ
+  `<style>` に畳み込み、Turnstile と `form-render.js` を `</body>` 直前に
+  インライン）を差し込む。フォームの無い文書の出力は一切変わらない。
+- 描画資産を同梱（`form_assets/form-render.js`・`form.css`）。フレーム
+  ワーク不使用。フォーム定義は付属のフォームビルダーで編集する運用を想定。
+- 対応する項目種別: text / email / tel / textarea / select / radio /
+  checkbox。必須・書式（郵便番号/電話/カタカナ/ひらがな/半角数字）・
+  一致確認（メール確認用）・項目ヘルプ・初期値・placeholder。
+- pytest 全通過（既存の組版・AsciiDoc・縦書き・原稿用紙に影響なし）。
+
 ## 0.9.5 (2026-07-13) — AsciiDoc入力に対応
 
 - `render(text, format="asciidoc")` / CLIの `--format asciidoc`

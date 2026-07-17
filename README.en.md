@@ -44,6 +44,11 @@ washi report.md --pdf    # → report.pdf as well (headless Chrome/Chromium)
   emphasis, admonitions, and lists, while furigana/emphasis-dots notation
   still works right inside the AsciiDoc body (washi adds what AsciiDoc
   itself doesn't have)
+- **Forms**: a `[.form]` block (with a JSON definition right after it) becomes an
+  interactive form with a confirmation screen — text/email/tel/textarea/select/
+  radio/checkbox fields, required, formats (postal / phone / kana), email-match
+  check. Render assets are inlined only on pages that have a form (Markdown and
+  AsciiDoc alike)
 - Title block generated from frontmatter (`title` / `author` / `date`)
 
 ## Usage

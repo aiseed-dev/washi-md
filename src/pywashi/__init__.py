@@ -21,21 +21,36 @@ from pathlib import Path
 from markdown_it import MarkdownIt
 from mdit_py_cjk_friendly import bouten, cjk_friendly, ruby
 
-__version__ = "0.9.5"
+__version__ = "0.10.1"
+
+from .form import form  # [.form] ブロック → 対話的フォーム(opt-in プラグイン)
 
 _CSS = (Path(__file__).parent / "style.css").read_text(encoding="utf-8")
 _VERTICAL_CSS = (Path(__file__).parent / "vertical.css").read_text(encoding="utf-8")
 _GENKO_CSS = (Path(__file__).parent / "genko.css").read_text(encoding="utf-8")
 
-# 縦中横: タグ・コード部を除いた本文テキスト中の 1〜2桁数字と !? ペア
-_TCY_SPLIT_RE = re.compile(r"(<pre\b.*?</pre>|<code\b.*?</code>|<[^>]+>)", re.DOTALL)
+# フォームの描画資産(本文に [.form] がある時だけ、出力HTMLへ差し込む)
+_FORM_DIR = Path(__file__).parent / "form_assets"
+_FORM_CSS = (_FORM_DIR / "form.css").read_text(encoding="utf-8")
+_FORM_JS = (_FORM_DIR / "form-render.js").read_text(encoding="utf-8")
+_TURNSTILE = '<script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>'
+
+# 縦中横: タグ・コード部を除いた本文テキスト中の 1〜2桁数字と !? ペア。
+# <script>(フォーム定義JSON等)・<style> の中身はテキストではないので対象外
+# —— ここを除外しないと [.form] のJSONに <span> が刺さって JSON.parse が
+# 落ちる(縦書き+フォームのページでフォームが全滅した・実測)。文字参照
+# (&#39; 等)も分解すると参照ごと壊れるため丸ごと素通しにする。
+_TCY_SPLIT_RE = re.compile(
+    r"(<pre\b.*?</pre>|<code\b.*?</code>|<script\b.*?</script>|"
+    r"<style\b.*?</style>|<[^>]+>|&#?\w+;)", re.DOTALL)
 _TCY_RE = re.compile(r"(?<![0-9A-Za-z])([0-9]{1,2}|[!?]{2})(?![0-9A-Za-z])")
 
 
 def _tcy(html_body: str) -> str:
     """縦書き用: 短い英数字を <span class="tcy"> で縦中横にする。"""
     return "".join(
-        p if p.startswith("<") else _TCY_RE.sub(r'<span class="tcy">\1</span>', p)
+        p if p.startswith(("<", "&"))
+        else _TCY_RE.sub(r'<span class="tcy">\1</span>', p)
         for p in _TCY_SPLIT_RE.split(html_body))
 
 
@@ -56,7 +71,12 @@ class _GenkoCellWrapper(HTMLParser):
     崩れることを確認して対応）。
     """
 
-    _SKIP_TAGS = {"rt", "rp", "pre", "code", "table"}
+    _SKIP_TAGS = {"rt", "rp", "pre", "code", "table", "script", "style"}
+    # script/style は CDATA: マス目対象外なだけでなく、中身はHTMLテキスト
+    # ではないのでエスケープもしない([.form] の定義JSONの `"` が &quot; に
+    # 化けて JSON.parse が落ちた・実測)。HTMLParser は script/style 内で
+    # 実体参照変換もタグ解釈もしないため、そのまま書き戻すのが正しい。
+    _RAW_TAGS = {"script", "style"}
     # HTML整形用の半角空白（改行・タブ含む）だけをマス目対象外にする。
     # 全角スペース(U+3000、字下げに使われる)は str.isspace()==True だが
     # これは実際のマス1つぶんの中身なので、cellで包む対象に含める。
@@ -105,6 +125,9 @@ class _GenkoCellWrapper(HTMLParser):
             self._admonition_depth -= 1
 
     def handle_data(self, data: str) -> None:
+        if self._skip_stack and self._skip_stack[-1] in self._RAW_TAGS:
+            self.out.append(data)  # script/style の中身は無加工で書き戻す
+            return
         if self._skip_stack or self._in_admonition():
             self.out.append(_html.escape(data))
             return
@@ -161,13 +184,14 @@ _PAGE = """<!DOCTYPE html>
 </head>
 <body{bodyclass}>
 {heading}{body}
-</body>
+{scripts}</body>
 </html>
 """
 
 
 def _frontmatter(text: str) -> tuple[dict, str]:
-    m = re.match(r"\A---\n(.*?)\n---\n", text, re.DOTALL)
+    # \r?\n —— CRLF(Windows由来)の文書でも frontmatter を認識する
+    m = re.match(r"\A---\r?\n(.*?)\r?\n---\r?\n", text, re.DOTALL)
     if not m:
         return {}, text
     meta = {}
@@ -208,7 +232,7 @@ def _build_parser(format: str) -> MarkdownIt:
     """
     if format == "markdown":
         return (MarkdownIt("commonmark", {"html": True})
-                .enable("table").use(cjk_friendly).use(ruby).use(bouten))
+                .enable("table").use(cjk_friendly).use(ruby).use(bouten).use(form))
     if format == "asciidoc":
         try:
             import pyasciidoc
@@ -222,8 +246,13 @@ def _build_parser(format: str) -> MarkdownIt:
         # 傍点/傍線(bouten)はAsciiDoc構文には無いのでwashi側から追加で
         # 合成する(でんでん記法 {漢字|かんじ} 等はAsciiDoc本文中でも
         # そのまま使える)。
-        return (MarkdownIt("commonmark", {"html": True})
-                .enable("table").use(pyasciidoc.asciidoc).use(ruby).use(bouten))
+        # html:False —— AsciiDocに生HTML素通しの構文は無く、pyasciidoc
+        # 自身も「render()はhtml:Falseで呼ぶ」前提で組んである。ここを
+        # Trueにすると html_block(ブロック形の生HTML)だけが有効に残り、
+        # <script>…</script> が素通しになる(pyasciidoc単体では防がれる
+        # のに合成時だけXSS面が開く・実測)。
+        return (MarkdownIt("commonmark", {"html": False})
+                .enable("table").use(pyasciidoc.asciidoc).use(ruby).use(bouten).use(form))
     raise ValueError(f"未知のformat: {format!r}（'markdown'か'asciidoc'を指定）")
 
 
@@ -250,6 +279,7 @@ def render(text: str, title: str | None = None, author: str | None = None,
     meta, body_md = _frontmatter(text)
     md = _build_parser(format)
     body = md.render(body_md)
+    has_form = 'class="fr-form"' in body  # [.form] が展開されたページだけ資産を積む
     if vertical and not genko:
         body = _tcy(body)  # 原稿用紙では縦中横にせず1字1マス (全角化) で組む
 
@@ -286,6 +316,8 @@ def render(text: str, title: str | None = None, author: str | None = None,
         parts.append(Path(f).read_text(encoding="utf-8"))
     if extra_style:
         parts.append(extra_style)
+    if has_form:
+        parts.append(_FORM_CSS)  # 自己完結: フォームCSSも同じ <style> に畳み込む
     css = "\n".join(parts)
     if embed_fonts:
         css = _embed_fonts_css(Path(embed_fonts)) + "\n" + css
@@ -309,8 +341,14 @@ def render(text: str, title: str | None = None, author: str | None = None,
         # 行送り計算の誤差で行を追うごとにずれるため・実測で確認済み）
         heading = _genko_cells(heading)
         body = _genko_cells(body)
+    scripts = ""
+    if has_form:
+        # Turnstile(sitekey がある時だけ実際に描かれる)+ フォーム描画本体を
+        # インライン化。form-render.js が .fr-form を自動初期化する。
+        scripts = f"{_TURNSTILE}\n<script>\n{_FORM_JS}\n</script>\n"
     return _PAGE.format(title=_html.escape(title), css=css, bodyclass=bodyclass,
-                        webfonts=webfont_links, heading=heading, body=body)
+                        webfonts=webfont_links, heading=heading, body=body,
+                        scripts=scripts)
 
 
 def _find_chrome() -> str | None:
@@ -323,7 +361,11 @@ def _find_chrome() -> str | None:
 def to_pdf(html_path: Path, pdf_path: Path) -> None:
     chrome = _find_chrome()
     if not chrome:
-        sys.exit("PDF化には Chrome/Chromium が必要です (google-chrome または chromium)")
+        # ライブラリAPIなので sys.exit ではなく例外にする —— SystemExit は
+        # Exception の派生ではないため、呼び出し側(bunko等)の
+        # except Exception をすり抜けてワーカーごと黙って死んでいた。
+        raise RuntimeError(
+            "PDF化には Chrome/Chromium が必要です (google-chrome または chromium)")
     subprocess.run(
         [chrome, "--headless", "--disable-gpu", "--no-pdf-header-footer",
          f"--print-to-pdf={pdf_path}", html_path.resolve().as_uri()],
@@ -379,7 +421,10 @@ def main() -> None:
     print(out)
     if args.pdf:
         pdf = out.with_suffix(".pdf")
-        to_pdf(out, pdf)
+        try:
+            to_pdf(out, pdf)
+        except RuntimeError as exc:  # CLIでは従来どおりメッセージで終了
+            sys.exit(str(exc))
         print(pdf)
 
 

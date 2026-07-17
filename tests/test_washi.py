@@ -332,3 +332,79 @@ def test_asciidoc_format_without_pyasciidoc_raises_clear_error(monkeypatch):
     monkeypatch.setattr(builtins, "__import__", fake_import)
     with pytest.raises(ValueError, match="pyasciidoc"):
         render("= 表題\n", format="asciidoc")
+
+
+# ---- 縦書き/原稿用紙 × [.form]: フォーム定義JSONを壊さない ----
+
+import json  # noqa: E402
+
+_FORM_DOC = (
+    "本文!!\n\n[.form]\n"
+    '{"action":"https://w.example/submit","fields":'
+    '[{"name":"n","label":"名前!?","type":"text","maxlength":20}]}\n'
+)
+
+
+def _form_json(html):
+    m = re.search(
+        r'<script type="application/json">(.*?)</script>', html, re.DOTALL)
+    assert m, "フォーム定義の <script> が見つからない"
+    return json.loads(m.group(1))
+
+
+def test_vertical_form_json_survives_tcy():
+    """縦中横(<span class="tcy">)が <script> 内のJSONに刺さらない。"""
+    schema = _form_json(render(_FORM_DOC, vertical=True))
+    assert schema["fields"][0]["maxlength"] == 20
+    assert schema["fields"][0]["label"] == "名前!?"
+
+
+def test_vertical_tcy_still_applies_to_prose_when_form_present():
+    html = render(_FORM_DOC, vertical=True)
+    assert '<span class="tcy">!!</span>' in html
+
+
+def test_genko_form_json_survives_cell_wrapping():
+    """1字1マス(<span class="cell">)と &quot; 化が <script> 内に及ばない。"""
+    schema = _form_json(render(_FORM_DOC, genko=True))
+    assert schema["fields"][0]["maxlength"] == 20
+
+
+def test_tcy_leaves_character_references_alone():
+    """素通しHTML中の文字参照(&#39;等)を分解しない。"""
+    assert _tcy("&#39;12&#39;") == '&#39;<span class="tcy">12</span>&#39;'
+
+
+# ---- asciidoc format: 生HTMLブロックを素通ししない ----
+
+
+def test_asciidoc_format_does_not_pass_raw_html_blocks():
+    html = render("<script>alert(1)</script>\n\n本文。\n", format="asciidoc")
+    assert "<script>alert(1)</script>" not in html
+    assert "&lt;script&gt;" in html
+
+
+# ---- [.form] が段落直後(空行なし)でも効く(markdown入力) ----
+
+
+def test_form_block_can_interrupt_a_paragraph_in_markdown():
+    html = render('前の段落\n[.form]\n{"action":"/s","fields":[]}\n')
+    assert 'class="fr-form"' in html
+
+
+# ---- to_pdf: Chrome不在は SystemExit ではなく RuntimeError ----
+
+
+def test_to_pdf_raises_runtime_error_without_chrome(monkeypatch, tmp_path):
+    monkeypatch.setattr(pywashi.shutil, "which", lambda c: None)
+    with pytest.raises(RuntimeError, match="Chrome"):
+        pywashi.to_pdf(tmp_path / "a.html", tmp_path / "a.pdf")
+
+
+# ---- frontmatter: CRLF改行でも認識する ----
+
+
+def test_frontmatter_accepts_crlf():
+    html = render("---\r\ntitle: 表題\r\nauthor: 著者\r\n---\r\n本文。\r\n")
+    assert "<h1>表題</h1>" in html
+    assert "title:" not in html.split("<body")[1]
